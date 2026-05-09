@@ -4,7 +4,8 @@
 # Model: dist ~ speed (simple linear regression, Bayesian)
 # ============================================================
 
-require(brms)
+# restore packages from renv
+renv::restore()
 
 # create output folder
 if (!dir.exists("models")) dir.create("models")
