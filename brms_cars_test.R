@@ -5,7 +5,8 @@
 # ============================================================
 
 # restore packages from renv
-renv::restore()
+renv::restore(rebuild = TRUE)
+library(brms)
 
 # create output folder
 if (!dir.exists("models")) dir.create("models")
