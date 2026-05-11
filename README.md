@@ -4,7 +4,9 @@ A Docker container for VM BRMS runs
 
 ## Getting Started
 
-1.  Clone this repository to the VM of interest, then:
+On your virtual machine:
+
+1.  Clone this repository, then:
 ```bash
 cd your/repo/path
 ```
