@@ -31,4 +31,4 @@ fit_01 <- brm(
 fit_01 <- add_criterion(fit_01, "loo")
 
 # save model
-saveRDS(fit_01, file = "models/fit_01.rds")
+saveRDS(fit_01, file = paste0("models/fit_01_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds"))
