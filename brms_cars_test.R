@@ -4,9 +4,12 @@
 # Model: dist ~ speed (simple linear regression, Bayesian)
 # ============================================================
 
-# restore packages from renv
-renv::restore(rebuild = TRUE)
+# load packages
 library(brms)
+library(cmdstanr)
+
+cmdstanr::check_cmdstan_toolchain()   # confirms Stan is found
+
 
 # create output folder
 if (!dir.exists("models")) dir.create("models")
@@ -19,8 +22,9 @@ fit_01 <- brm(
   chains  = 2,
   iter    = 2000,
   warmup  = 1000,
-  seed    = 42,
-  cores   = 2
+  seed    = 125,
+  cores   = 2,
+  backend = "cmdstanr"
 )
 
 # compute loo
