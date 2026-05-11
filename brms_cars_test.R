@@ -23,7 +23,7 @@ fit_01 <- brm(
   iter    = 2000,
   warmup  = 1000,
   seed    = 125,
-  cores   = 2,
+  cores   = 4,
   backend = "cmdstanr"
 )
 
