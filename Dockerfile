@@ -12,7 +12,6 @@ FROM rocker/tidyverse:4.4.2
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libicu-dev \
     pandoc \
-    pandoc-citeproc \
     libglpk-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
