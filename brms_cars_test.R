@@ -10,6 +10,7 @@ library(cmdstanr)
 
 cmdstanr::check_cmdstan_toolchain()   # confirms Stan is found
 
+cat("Running test cars BRMS model.\n")
 
 # create output folder
 if (!dir.exists("models")) dir.create("models")
@@ -27,8 +28,8 @@ fit_01 <- brm(
   backend = "cmdstanr"
 )
 
-# compute loo
-fit_01 <- add_criterion(fit_01, "loo")
-
 # save model
-saveRDS(fit_01, file = paste0("models/fit_01_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds"))
+model_fit_file = paste0("models/fit_01_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+saveRDS(fit_01, file = model_fit_file)
+
+cat(paste0("Done. Model fit saved to:\n\n\t", getwd(), "/", model_fit_file, "\n"))
