@@ -56,7 +56,7 @@ m11c_zln <- brm(
       (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
       (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
     
-    sigma ~ 1 + taxon_capture + (1 | gr(taxon_capture:population, by = taxon_capture))
+    sigma ~ 1 + taxon_capture
   ),
   data = brms_data,
   family = hurdle_lognormal(),
@@ -72,7 +72,7 @@ m11c_zln <- brm(
 )
 
 # save model
-model_fit_file = paste0("models/unified_model_results_zln_life_tax_pt2_rgrtaxacorpt2poplsyrkg3tax_p10t30_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+model_fit_file = paste0("models/unified_model_results_zln_life_tax_pt2_rgrtaxacorpt2poplsyrkg3_sigtax_p10t30_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
 saveRDS(m11c_zln, file = model_fit_file)
 
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
