@@ -1,6 +1,6 @@
 # R-BRMS-CMDSTAN
 
-A Docker container for VM BRMS runs
+A Docker container for virtual BRMS runs
 
 ## Getting Started
 
