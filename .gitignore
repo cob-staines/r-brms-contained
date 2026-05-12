@@ -5,5 +5,4 @@
 .positai
 *.Rproj
 *.rds
-renv/library/
-renv/staging/
+/data/
