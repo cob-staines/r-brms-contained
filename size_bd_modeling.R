@@ -56,7 +56,7 @@ m11c_zln <- brm(
       (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
       (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
     
-    sigma ~ 1 + taxon_capture + (1 | gr(taxon_capture:population), by = taxon_capture)
+    sigma ~ 1 + taxon_capture + (1 | gr(taxon_capture:population, by = taxon_capture))
   ),
   data = brms_data,
   family = hurdle_lognormal(),
