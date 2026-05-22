@@ -25,7 +25,7 @@ docker run -it --rm -v $(pwd):/project r-brms Rscript brms_cars_test.R
 
 1. create a new `tmux` session on your virtual machine:
 ```{bash}
-tmux new-session -s myjob
+tmux new -s myjob
 ```
 
 2. run your model:
@@ -34,10 +34,10 @@ docker run -it --rm -v $(pwd):/project r-brms Rscript long_running_brms_model_sc
 ```
 
 3. detatch from session:
-`Ctrl+B, D` to detatch. You can now close your ssh connection to the VM, and the model will keep running.
+`Ctrl+b, d` to detatch. You can now close your ssh connection to the VM, and the model will keep running.
 
 4: reconnect to session to check on model:
 Reestablish ssh, then:
 ```{bash}
-tmux attach-session -t myjob
+tmux attach -t myjob
 ```
