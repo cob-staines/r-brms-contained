@@ -73,6 +73,6 @@ m11e_zln <- brm(
 
 # save model
 model_fit_file = paste0("models/unified_model_results_zln_life_tax_pt2_rgrtaxacorpt2poplsyrkg3_sigma_taxpopkg_p10t30_s02", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
-saveRDS(m11f_zln, file = model_fit_file)
+saveRDS(m11e_zln, file = model_fit_file)
 
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
