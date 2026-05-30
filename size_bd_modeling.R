@@ -16,7 +16,7 @@ cat("\nRunning BRMS model:\n\n")
 if (!dir.exists("models")) dir.create("models")
 
 # load data
-load("data/bd_model_env_unified_2026-05-22.RData")
+load("data/bd_model_env_unified_2026-05-30.RData")
 
 # set prior
 model_priors <- c(
