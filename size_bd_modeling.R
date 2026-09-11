@@ -37,8 +37,7 @@ model_priors <- c(
 )
 
 # fit model
-# isolate scales between taxa
-m11e_zln <- brm(
+m11b_zln <- brm(
   formula = bf(
     bd_load_co_density ~ 1 + 
       life_stage_simple * taxon_capture +
@@ -56,7 +55,7 @@ m11e_zln <- brm(
       (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
       (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
     
-    sigma ~ 1 + taxon_capture + (1 | taxon_capture:population) + (1 | kg_code_3)
+    sigma ~ 1 + taxon_capture + (1 | taxon_capture:population)
   ),
   data = brms_data,
   family = hurdle_lognormal(),
@@ -64,15 +63,15 @@ m11e_zln <- brm(
   sample_prior = "yes",
   control = list(adapt_delta = 0.98),
   chains = 4,
-  iter = 2000,
-  warmup = 1000,
+  iter = 4000,
+  warmup = 2000,
   seed = 126,
   cores = 4,
   backend = "cmdstanr"
 )
 
 # save model
-model_fit_file = paste0("models/unified_model_results_zln_life_tax_pt2_rgrtaxacorpt2poplsyrkg3_sigma_taxpopkg_p10t30_s02", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+model_fit_file = paste0("models/unified_model_results_zln_life_tax_pt2_rgrtaxacorpt2poplsyrkg3_p10t30.rds", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
 saveRDS(m11e_zln, file = model_fit_file)
 
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
