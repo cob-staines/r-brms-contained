@@ -41,9 +41,17 @@ RUN Rscript -e " \
 # find CmdStan via cmdstanr's default $HOME-based lookup nor read into
 # /root at all. /opt/cmdstan/current is a stable, world-readable path, and
 # CMDSTAN points cmdstanr at it regardless of the runtime user's $HOME.
+#
+# cpp_options = list(stan_threads = TRUE) bakes brms/cmdstanr threading
+# support (see brms_threading vignette) into CmdStan at build time. Without
+# this, the first threaded model compiled at runtime tries to build
+# CmdStan's own threaded core object (main_threads.o) lazily inside the
+# CmdStan install dir - but a Singularity .sif is a read-only filesystem at
+# runtime regardless of Unix permission bits, so that write fails.
 RUN mkdir -p /opt/cmdstan && \
     Rscript -e " \
-    cmdstanr::install_cmdstan(dir = '/opt/cmdstan', cores = parallel::detectCores()) \
+    cmdstanr::install_cmdstan(dir = '/opt/cmdstan', cores = parallel::detectCores(), \
+                               cpp_options = list(stan_threads = TRUE)) \
 " && \
     ln -s "$(ls -d /opt/cmdstan/cmdstan-*)" /opt/cmdstan/current && \
     chmod -R a+rX /opt/cmdstan
