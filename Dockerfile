@@ -41,7 +41,8 @@ RUN Rscript -e " \
 # find CmdStan via cmdstanr's default $HOME-based lookup nor read into
 # /root at all. /opt/cmdstan/current is a stable, world-readable path, and
 # CMDSTAN points cmdstanr at it regardless of the runtime user's $HOME.
-RUN Rscript -e " \
+RUN mkdir -p /opt/cmdstan && \
+    Rscript -e " \
     cmdstanr::install_cmdstan(dir = '/opt/cmdstan', cores = parallel::detectCores()) \
 " && \
     ln -s "$(ls -d /opt/cmdstan/cmdstan-*)" /opt/cmdstan/current && \
