@@ -35,10 +35,18 @@ RUN Rscript -e " \
 "
 
 # ---- Install CmdStan ------------------------------------
-# cmdstanr requires a separate step to install the CmdStan binaries
+# Install to /opt rather than the default $HOME-relative path: this build
+# runs as root (HOME=/root, mode 700), but containers run on HPC via
+# Singularity execute as the invoking host user, not root, who can neither
+# find CmdStan via cmdstanr's default $HOME-based lookup nor read into
+# /root at all. /opt/cmdstan/current is a stable, world-readable path, and
+# CMDSTAN points cmdstanr at it regardless of the runtime user's $HOME.
 RUN Rscript -e " \
-    cmdstanr::install_cmdstan(cores = parallel::detectCores()) \
-"
+    cmdstanr::install_cmdstan(dir = '/opt/cmdstan', cores = parallel::detectCores()) \
+" && \
+    ln -s "$(ls -d /opt/cmdstan/cmdstan-*)" /opt/cmdstan/current && \
+    chmod -R a+rX /opt/cmdstan
+ENV CMDSTAN=/opt/cmdstan/current
 
 # ---- Set working directory ------------------------------
 WORKDIR /project
