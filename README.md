@@ -72,14 +72,33 @@ run if it's not already present:
 singularity pull r-brms.sif docker://ghcr.io/<your-github-username>/r-brms-contained:latest
 ```
 
-**3. Test first, then run for real:**
+**3. Transfer data to/from the cluster.** `data/` and `*.rds` are gitignored
+(too large/data-specific to version), so getting the input `.RData` onto
+the cluster and fitted models back off it is on you — the container just
+reads/writes plain files under `/project` (the bind-mounted repo directory),
+there's no transfer logic in the job itself. Use `rsync` against a direct
+HPC hostname (not the auto-forwarding `hpc.grit.ucsb.edu`, which drops you
+straight into a Slurm session rather than a plain shell):
+```bash
+# push input data up, from your local machine
+rsync -avr data/bd_model_env_unified_2026-09-11.RData <username>@bellows.grit.ucsb.edu:~/r-brms-contained/data/
+
+# pull results back down, after a run finishes
+rsync -avr <username>@bellows.grit.ucsb.edu:~/r-brms-contained/models/ ./models/
+```
+Clone/keep the repo in your regular GRIT home directory rather than the
+`/home/hpc-scratch` BeeGFS scratch space — scratch is faster but **not
+backed up and auto-purges files untouched for 3 months**, which isn't worth
+the risk given the data/output sizes here (a few MB to a few 10s of MB).
+
+**4. Test first, then run for real:**
 ```bash
 sbatch hpc/test_cars.sbatch              # quick smoke test (~minutes)
 squeue -u $USER                          # watch it queue/run
 cat logs/r-brms-test_<jobid>.out         # check the result
 ```
 
-**4. Estimate runtime before committing to the full model.**
+**5. Estimate runtime before committing to the full model.**
 `size_bd_modeling.R` reads `N_CHAINS`/`N_ITER`/`N_WARMUP`/`N_CORES`/
 `N_THREADS_PER_CHAIN` from env vars (defaulting to the production values: 4
 chains, 4000 iter, 2000 warmup, 1 thread/chain). `hpc/timing_probe.sbatch`
@@ -96,7 +115,7 @@ short probe's warmup may not fully reach the step size/tree depth the real
 2000-iteration warmup settles into, so per-iteration cost can be higher in
 the full run than the probe suggests.
 
-**5. Run the real model:**
+**6. Run the real model:**
 ```bash
 sbatch hpc/run_size_bd_modeling.sbatch
 ```
