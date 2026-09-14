@@ -81,10 +81,11 @@ HPC hostname (not the auto-forwarding `hpc.grit.ucsb.edu`, which drops you
 straight into a Slurm session rather than a plain shell):
 ```bash
 # push input data up, from your local machine
-rsync -avr data/bd_model_env_unified_2026-09-11.RData <username>@bellows.grit.ucsb.edu:~/r-brms-contained/data/
+rsync -avr data/bd_model_env_unified_2026-09-11.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+
 
 # pull results back down, after a run finishes
-rsync -avr <username>@bellows.grit.ucsb.edu:~/r-brms-contained/models/ ./models/
+rsync -avr <username>@ssh.grit.ucsb.edu:~/r-brms-contained/models/ ./models/
 ```
 Clone/keep the repo in your regular GRIT home directory rather than the
 `/home/hpc-scratch` BeeGFS scratch space — scratch is faster but **not

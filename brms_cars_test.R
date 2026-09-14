@@ -10,6 +10,8 @@ library(cmdstanr)
 
 cmdstanr::check_cmdstan_toolchain()   # confirms Stan is found
 
+set_cmdstan_path()
+
 cat("\nRunning BRMS cars test model:\n\n")
 
 # create output folder
