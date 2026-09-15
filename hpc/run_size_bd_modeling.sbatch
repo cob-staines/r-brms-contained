@@ -9,9 +9,13 @@
 #SBATCH -p grit_nodes
 #SBATCH -c 4                    # must equal N_CORES * N_THREADS_PER_CHAIN below (see brms threading:
                                  # https://cran.r-project.org/web/packages/brms/vignettes/brms_threading.html)
-#SBATCH --mem=32G                # TODO: unverified guess for a model with this many random-effect groups.
-                                  #       After the first run, check actual usage with `seff <jobid>`
-                                  #       or `sacct -j <jobid> --format=MaxRSS` and tune this.
+#SBATCH --mem=128G                # TODO: still a guess, but a 16GB local VM already crashed at these
+                                  #       exact settings (chains=4, iter=4000, warmup=2000), so treat
+                                  #       32G as known-insufficient. Run hpc/timing_probe.sbatch first
+                                  #       and check `sacct -j <jobid> --format=MaxRSS` (chains=4 there
+                                  #       too, so it's a fair basis for extrapolation - memory scales
+                                  #       close to linearly with chains/kept draws, unlike runtime) to
+                                  #       set this properly before spending real cluster time.
 #SBATCH -t 5-00:00:00             # TODO: unverified guess. Timing probes on this model showed highly
                                   #       non-linear warmup cost (Stan's windowed adaptation barely
                                   #       engages on a short warmup, so small probes don't extrapolate

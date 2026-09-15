@@ -127,6 +127,25 @@ If a run does complete, the script also prints a per-chain warmup/sampling
 time breakdown (`$fit$time()`) — useful for seeing whether warmup or
 sampling is actually the expensive part.
 
+**Memory is the other thing to check before the real run — and unlike
+runtime, it IS safe to extrapolate.** Each chain is a separate OS process
+(memory isn't shared between them), so memory scales close to linearly with
+chains × kept draws, with no equivalent of the warmup-adaptation
+nonlinearity above. `hpc/timing_probe.sbatch` runs `N_CHAINS=4` (matching
+production, not fewer) for exactly this reason — since chains run in
+parallel this costs no extra wall-clock time, only more requested
+CPU/memory, and testing at fewer chains would underestimate real memory
+need by up to 4x. After a probe run:
+```bash
+sacct -j <jobid> --format=MaxRSS
+```
+A 16GB local VM has already crashed at full production settings (chains=4,
+iter=4000, warmup=2000), so treat anything under ~32G as known-insufficient
+for the real run — use the probe's `MaxRSS` (and, if you want a second data
+point, how it changes as you bump `N_WARMUP`/`N_ITER` in the probe) as the
+actual basis for `--mem` in `hpc/run_size_bd_modeling.sbatch`, rather than
+guessing.
+
 **6. Run the real model:**
 ```bash
 sbatch hpc/run_size_bd_modeling.sbatch
