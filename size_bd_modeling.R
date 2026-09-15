@@ -108,15 +108,42 @@ cat(paste0(
   n_iter, " iter, ", n_warmup, " warmup): ",
   format(Sys.time() - fit_start_time), "\n\n"
 ))
-# warmup vs sampling time per chain, since warmup (adaptation) cost often
-# doesn't scale linearly with warmup length - useful for judging whether a
-# short probe's timing is representative of the real warmup length
-cat("Per-chain warmup/sampling breakdown:\n")
-print(m_zln$fit$time())
-cat("\n")
 
-# save model
+# save model FIRST, before any non-essential diagnostics below - a fitted
+# model must never be at risk of being lost to a diagnostic-only error
+# (this happened: an earlier version of this script crashed here after a
+# successful multi-hour fit, before saving, because $fit$time() isn't valid
+# for backend="cmdstanr" - brms normalizes $fit into an rstan-compatible S4
+# stanfit object regardless of backend, which doesn't support $ access)
 model_fit_file = paste0("models/unified_model_results_zln_11b_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
 saveRDS(m_zln, file = model_fit_file)
-
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
+
+# warmup vs sampling time per chain - purely informational, wrapped so it
+# can never take down the script now that the model is already saved above
+tryCatch({
+  cat("Per-chain warmup/sampling breakdown (seconds):\n")
+  print(rstan::get_elapsed_time(m_zln$fit))
+  cat("\n")
+}, error = function(e) {
+  cat("(could not compute warmup/sampling breakdown: ", conditionMessage(e), ")\n\n")
+})
+
+# loo: computed AFTER the raw fit is already safely saved above, and
+# wrapped in tryCatch, since add_criterion(..., "loo") has its own history
+# of exhausting RAM - a crash here must never risk the fit itself. On
+# success, save to a SEPARATE file (not overwriting the raw fit above),
+# so the original is always there as a fallback regardless of what
+# happens to the loo step or this second write.
+run_loo <- as.logical(Sys.getenv("RUN_LOO", "TRUE"))
+if (run_loo) {
+  tryCatch({
+    cat("Computing loo...\n")
+    m_zln <- add_criterion(m_zln, "loo")
+    loo_fit_file <- sub("\\.rds$", "_with_loo.rds", model_fit_file)
+    saveRDS(m_zln, file = loo_fit_file)
+    cat(paste0("Done. Model fit with loo saved to:\n\n\t", loo_fit_file, "\n\n"))
+  }, error = function(e) {
+    cat("(could not compute/save loo: ", conditionMessage(e), ")\n\n")
+  })
+}
