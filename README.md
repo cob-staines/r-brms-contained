@@ -99,22 +99,33 @@ squeue -u $USER                          # watch it queue/run
 cat logs/r-brms-test_<jobid>.out         # check the result
 ```
 
-**5. Estimate runtime before committing to the full model.**
+**5. Estimating runtime is unreliable here — watch live progress instead.**
 `size_bd_modeling.R` reads `N_CHAINS`/`N_ITER`/`N_WARMUP`/`N_CORES`/
 `N_THREADS_PER_CHAIN` from env vars (defaulting to the production values: 4
-chains, 4000 iter, 2000 warmup, 1 thread/chain). `hpc/timing_probe.sbatch`
-runs the exact same data/formula/family but with 1 chain and 100 warmup +
-100 sampling iterations (same 50/50 warmup:sampling ratio as the real run),
-and the script itself prints fit time at the end:
+chains, 4000 iter, 2000 warmup, 1 thread/chain), and `hpc/timing_probe.sbatch`
+runs the exact same data/formula/family at a smaller scale.
+
+In practice, linear extrapolation from a short probe doesn't hold for this
+model: Stan's warmup adaptation isn't linear in warmup length — its default
+windowed adaptation schedule barely engages for a very short warmup (e.g.
+10-50 iterations), so a tiny probe can finish suspiciously fast without
+doing the real adaptation work, while a slightly larger one can suddenly
+hit expensive tree-depth blowups once adaptation properly kicks in. A probe
+at `warmup=50` took over 30 minutes here while `warmup=10` took under 2 —
+not something you can extrapolate `×N` from.
+
+So instead of trusting an extrapolated number, **watch actual progress live**.
+Both scripts run `Rscript` under `stdbuf -oL -eL` (line-buffered, so output
+flushes to the log immediately instead of sitting in a block buffer until
+the process exits) and `brm()` is called with `refresh` set to print
+progress regularly. Submit with a generous `-t`, then:
 ```bash
-sbatch hpc/timing_probe.sbatch
-cat logs/size_bd_timing_probe_<jobid>.out    # look for "Fit time (...)"
+sbatch hpc/timing_probe.sbatch        # or hpc/run_size_bd_modeling.sbatch
+tail -f logs/<job name>_<jobid>.out   # watch iterations tick by in real time
 ```
-Extrapolate: `estimated full runtime ≈ probe time × (4000 / 200)`, then pad
-it (e.g. x1.5) before setting `-t` in `run_size_bd_modeling.sbatch` — a
-short probe's warmup may not fully reach the step size/tree depth the real
-2000-iteration warmup settles into, so per-iteration cost can be higher in
-the full run than the probe suggests.
+If a run does complete, the script also prints a per-chain warmup/sampling
+time breakdown (`$fit$time()`) — useful for seeing whether warmup or
+sampling is actually the expensive part.
 
 **6. Run the real model:**
 ```bash

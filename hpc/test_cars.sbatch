@@ -25,4 +25,5 @@ if [ ! -f "$IMAGE" ]; then
   singularity pull "$IMAGE" docker://ghcr.io/cob-staines/r-brms-contained:latest
 fi
 
-singularity exec --bind "$PWD:/project" --pwd /project "$IMAGE" Rscript brms_cars_test.R
+singularity exec --bind "$PWD:/project" --pwd /project "$IMAGE" \
+  stdbuf -oL -eL Rscript brms_cars_test.R

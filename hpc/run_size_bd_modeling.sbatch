@@ -12,8 +12,12 @@
 #SBATCH --mem=32G                # TODO: unverified guess for a model with this many random-effect groups.
                                   #       After the first run, check actual usage with `seff <jobid>`
                                   #       or `sacct -j <jobid> --format=MaxRSS` and tune this.
-#SBATCH -t 48:00:00               # TODO: unverified guess, set generous until you have a timing estimate
-                                  #       (see hpc/timing_probe.sbatch). Cluster max is 30 days.
+#SBATCH -t 5-00:00:00             # TODO: unverified guess. Timing probes on this model showed highly
+                                  #       non-linear warmup cost (Stan's windowed adaptation barely
+                                  #       engages on a short warmup, so small probes don't extrapolate
+                                  #       reliably) - set generously and watch live progress instead
+                                  #       (`tail -f logs/<this job>.out`) rather than trusting a probe
+                                  #       estimate alone. Cluster max is 30 days.
 #SBATCH -J size_bd_model
 #SBATCH -o logs/%x_%j.out
 #SBATCH -e logs/%x_%j.err
@@ -36,4 +40,8 @@ fi
 export N_CORES=4
 export N_THREADS_PER_CHAIN=1
 
-singularity exec --bind "$PWD:/project" --pwd /project "$IMAGE" Rscript size_bd_modeling.R
+# stdbuf forces line-buffered stdout/stderr so progress flushes to the log
+# file live instead of sitting in a block buffer until the process exits -
+# lets you `tail -f` this job's log to see real iteration pace as it runs.
+singularity exec --bind "$PWD:/project" --pwd /project "$IMAGE" \
+  stdbuf -oL -eL Rscript size_bd_modeling.R

@@ -4,18 +4,23 @@
 # adapt_delta) but with a small iter/warmup, to estimate how long
 # the full run in run_size_bd_modeling.sbatch will take.
 #
-# Caveat: warmup (step-size/mass-matrix adaptation) is often slower
-# per-iteration than post-warmup sampling, especially with a high
-# adapt_delta like 0.98 here. A short probe still includes full
-# warmup, so it's a reasonable estimate, but treat the extrapolation
-# as a lower bound and pad it (e.g. x1.5) when setting -t on the real job.
+# Caveat: Stan's warmup adaptation is NOT linear in warmup length - its
+# default windowed adaptation schedule barely engages for a very short
+# warmup (e.g. 10-50 iterations), so tiny probes can finish suspiciously
+# fast without doing the real adaptation work, then a slightly bigger one
+# can suddenly hit expensive tree-depth blowups as adaptation properly
+# kicks in. Don't trust linear extrapolation from a short probe here -
+# use the live progress in this job's log (refresh is set in
+# size_bd_modeling.R, flushed immediately via stdbuf below) to watch
+# actual iteration pace with `tail -f logs/<this job>.out`, and check the
+# per-chain warmup/sampling breakdown this script prints at the end.
 #
 # Submit with: sbatch hpc/timing_probe.sbatch
 # ============================================================
 #SBATCH -p grit_nodes
 #SBATCH -c 1                    # must equal N_CORES * N_THREADS_PER_CHAIN below
 #SBATCH --mem=16G
-#SBATCH -t 00:30:00
+#SBATCH -t 04:00:00              # TODO: unverified guess - bump further if you still hit timeouts
 #SBATCH -J size_bd_timing_probe
 #SBATCH -o logs/%x_%j.out
 #SBATCH -e logs/%x_%j.err
@@ -41,4 +46,8 @@ export N_THREADS_PER_CHAIN=1
 export N_WARMUP=50
 export N_ITER=100
 
-singularity exec --bind "$PWD:/project" --pwd /project "$IMAGE" Rscript size_bd_modeling.R
+# stdbuf forces line-buffered stdout/stderr so progress flushes to the log
+# file live instead of sitting in a block buffer until the process exits -
+# lets you `tail -f` a still-running job instead of waiting blind.
+singularity exec --bind "$PWD:/project" --pwd /project "$IMAGE" \
+  stdbuf -oL -eL Rscript size_bd_modeling.R
