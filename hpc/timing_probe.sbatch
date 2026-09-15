@@ -32,7 +32,7 @@
 #SBATCH -c 4                    # must equal N_CORES * N_THREADS_PER_CHAIN below
 #SBATCH --mem=64G                # generous headroom for measuring, not a final estimate - a 16GB
                                   # local VM already crashed at full production settings
-#SBATCH -t 04:00:00              # TODO: unverified guess - bump further if you still hit timeouts
+#SBATCH -t 06:00:00              # TODO: unverified guess - bump further if you still hit timeouts
 #SBATCH -J size_bd_timing_probe
 #SBATCH -o logs/%x_%j.out
 #SBATCH -e logs/%x_%j.err
@@ -55,8 +55,8 @@ fi
 export N_CHAINS=4
 export N_CORES=4
 export N_THREADS_PER_CHAIN=1
-export N_WARMUP=50
-export N_ITER=100
+export N_WARMUP=100
+export N_ITER=200
 
 # stdbuf forces line-buffered stdout/stderr so progress flushes to the log
 # file live instead of sitting in a block buffer until the process exits -
