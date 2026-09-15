@@ -87,7 +87,7 @@ load("data/bd_model_env_unified_2026-09-11.RData")
 # log (see stdbuf in hpc/*.sbatch) so a running job's pace is visible via
 # `tail -f` rather than only knowable after it finishes or times out.
 fit_start_time <- Sys.time()
-m11b_zln <- brm(
+m_zln <- brm(
   formula = model_formula,
   data = brms_data,
   family = model_family,
@@ -112,11 +112,11 @@ cat(paste0(
 # doesn't scale linearly with warmup length - useful for judging whether a
 # short probe's timing is representative of the real warmup length
 cat("Per-chain warmup/sampling breakdown:\n")
-print(m11b_zln$fit$time())
+print(m_zln$fit$time())
 cat("\n")
 
 # save model
-model_fit_file = paste0("models/unified_model_results_zln_life_tax_pt2_rgrtaxacorpt2poplsyrkg3_p10t30.rds", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
-saveRDS(m11b_zln, file = model_fit_file)
+model_fit_file = paste0("models/unified_model_results_zln_11b_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+saveRDS(m_zln, file = model_fit_file)
 
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
