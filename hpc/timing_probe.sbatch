@@ -38,7 +38,7 @@ fi
 export N_CHAINS=1
 export N_CORES=1
 export N_THREADS_PER_CHAIN=1
-export N_WARMUP=100
-export N_ITER=200
+export N_WARMUP=10
+export N_ITER=20
 
 singularity exec --bind "$PWD:/project" --pwd /project "$IMAGE" Rscript size_bd_modeling.R
