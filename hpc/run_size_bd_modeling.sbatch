@@ -18,7 +18,7 @@
 # two concurrent jobs both trying to pull it the first time will race.
 # ============================================================
 #SBATCH -p grit_nodes
-#SBATCH -c 4                    # must equal N_CORES * N_THREADS_PER_CHAIN below (see brms threading:
+#SBATCH -c 8                    # must equal N_CORES * N_THREADS_PER_CHAIN below (see brms threading:
                                  # https://cran.r-project.org/web/packages/brms/vignettes/brms_threading.html)
 #SBATCH --mem=128G                # TODO: still a guess, but a 16GB local VM already crashed at these
                                   #       exact settings (chains=4, iter=4000, warmup=2000), so treat
@@ -27,7 +27,7 @@
                                   #       too, so it's a fair basis for extrapolation - memory scales
                                   #       close to linearly with chains/kept draws, unlike runtime) to
                                   #       set this properly before spending real cluster time.
-#SBATCH -t 5-00:00:00             # TODO: unverified guess. Timing probes on this model showed highly
+#SBATCH -t 2-00:00:00             # TODO: unverified guess. Timing probes on this model showed highly
                                   #       non-linear warmup cost (Stan's windowed adaptation barely
                                   #       engages on a short warmup, so small probes don't extrapolate
                                   #       reliably) - set generously and watch live progress instead
@@ -53,7 +53,7 @@ fi
 # if you have spare CPUs and want per-chain speedup rather than just more
 # parallel chains.
 export N_CORES=4
-export N_THREADS_PER_CHAIN=1
+export N_THREADS_PER_CHAIN=2
 
 # stdbuf forces line-buffered stdout/stderr so progress flushes to the log
 # file live instead of sitting in a block buffer until the process exits -
