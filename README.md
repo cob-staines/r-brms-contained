@@ -101,9 +101,12 @@ cat logs/r-brms-test_<jobid>.out         # check the result
 
 **5. Estimating runtime is unreliable here — watch live progress instead.**
 `size_bd_modeling.R` reads `N_CHAINS`/`N_ITER`/`N_WARMUP`/`N_CORES`/
-`N_THREADS_PER_CHAIN` from env vars (defaulting to the production values: 4
-chains, 4000 iter, 2000 warmup, 1 thread/chain), and `hpc/timing_probe.sbatch`
-runs the exact same data/formula/family at a smaller scale.
+`N_THREADS_PER_CHAIN` from env vars (script defaults: 4 chains, 4000 iter,
+2000 warmup, 1 thread/chain; `hpc/run_size_bd_modeling.sbatch` currently
+overrides this to 2 threads/chain for production runs - keep this note and
+that script's `-c`/`N_CORES`/`N_THREADS_PER_CHAIN` in sync if you change it
+again), and `hpc/timing_probe.sbatch` runs the exact same data/formula/family
+at a smaller scale.
 
 In practice, linear extrapolation from a short probe doesn't hold for this
 model: Stan's warmup adaptation isn't linear in warmup length — its default
