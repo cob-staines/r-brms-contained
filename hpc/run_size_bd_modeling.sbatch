@@ -5,6 +5,17 @@
 # container + Slurm setup before submitting this.
 #
 # Submit with: sbatch hpc/run_size_bd_modeling.sbatch
+#
+# To run two (or more) variants concurrently - e.g. comparing Bd load
+# threshold decisions on separate data files - submit this same script
+# once per variant, overriding DATA_FILE/RUN_TAG and the job name so
+# each gets its own log and output files instead of colliding:
+#
+#   sbatch -J size_bd_threshA --export=ALL,DATA_FILE=data/bd_model_env_threshA.RData,RUN_TAG=threshA hpc/run_size_bd_modeling.sbatch
+#   sbatch -J size_bd_threshB --export=ALL,DATA_FILE=data/bd_model_env_threshB.RData,RUN_TAG=threshB hpc/run_size_bd_modeling.sbatch
+#
+# Run hpc/pull_image.sbatch once first if r-brms.sif doesn't exist yet -
+# two concurrent jobs both trying to pull it the first time will race.
 # ============================================================
 #SBATCH -p grit_nodes
 #SBATCH -c 4                    # must equal N_CORES * N_THREADS_PER_CHAIN below (see brms threading:

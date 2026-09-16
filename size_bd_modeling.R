@@ -72,6 +72,13 @@ n_warmup <- as.integer(Sys.getenv("N_WARMUP", "2000"))
 n_cores <- as.integer(Sys.getenv("N_CORES", "4"))
 n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 
+# DATA_FILE / RUN_TAG let two (or more) variants - e.g. different Bd load
+# threshold decisions - run concurrently as separate Slurm jobs against the
+# same script without clobbering each other's output. RUN_TAG defaults to
+# the data file's basename so output is traceable even if left unset.
+data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-09-11.RData")
+run_tag <- Sys.getenv("RUN_TAG", tools::file_path_sans_ext(basename(data_file)))
+
 # ------------------------------------------------------------
 # Execution
 # ------------------------------------------------------------
@@ -80,7 +87,8 @@ n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 if (!dir.exists("models")) dir.create("models")
 
 # load data
-load("data/bd_model_env_unified_2026-09-11.RData")
+cat(paste0("Loading data from: ", data_file, " (run tag: ", run_tag, ")\n\n"))
+load(data_file)
 
 # fit model
 # refresh: print progress every ~50 iterations (min 1), flushed live to the
@@ -115,7 +123,7 @@ cat(paste0(
 # successful multi-hour fit, before saving, because $fit$time() isn't valid
 # for backend="cmdstanr" - brms normalizes $fit into an rstan-compatible S4
 # stanfit object regardless of backend, which doesn't support $ access)
-model_fit_file = paste0("models/unified_model_results_zln_11b_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+model_fit_file = paste0("models/unified_model_results_zln_11b_", run_tag, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
 saveRDS(m_zln, file = model_fit_file)
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
 
