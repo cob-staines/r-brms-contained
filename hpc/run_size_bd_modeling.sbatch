@@ -27,7 +27,7 @@
                                   #       too, so it's a fair basis for extrapolation - memory scales
                                   #       close to linearly with chains/kept draws, unlike runtime) to
                                   #       set this properly before spending real cluster time.
-#SBATCH -t 2-00:00:00             # TODO: unverified guess. Timing probes on this model showed highly
+#SBATCH -t 5-00:00:00             # TODO: unverified guess. Timing probes on this model showed highly
                                   #       non-linear warmup cost (Stan's windowed adaptation barely
                                   #       engages on a short warmup, so small probes don't extrapolate
                                   #       reliably) - set generously and watch live progress instead
