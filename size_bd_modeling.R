@@ -22,24 +22,24 @@ cat("\nRunning BRMS model:\n\n")
 model_family <- hurdle_lognormal()
 
 model_formula <- bf(
-  bd_load_co_density ~ 1 +
-    life_stage_simple * taxon_capture +
-    (precip_mm_10_z  + temp_c_30_z + I(temp_c_30_z^2)) +
-    (0 + precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2) | taxon_capture) +
-    (1 | kg_code_3) +
-    (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
-    (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
-
-  hu ~ 1 +
-    life_stage_simple * taxon_capture +
-    (precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2)) +
-    (0 + precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2) | taxon_capture) +
-    (1 | kg_code_3) +
-    (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
-    (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
-
-  sigma ~ 1 + taxon_capture + (1 | taxon_capture:population)
-)
+    bd_load_co_density ~ 1 + 
+      life_stage_simple * taxon_capture +
+      (precip_mm_10_z  + temp_c_30_z + I(temp_c_30_z^2)) +
+      (0 + precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2) | taxon_capture) +
+      (1 | kg_code_3) +
+      (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
+      (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
+    
+    hu ~ 1 + 
+      life_stage_simple * taxon_capture +
+      (precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2)) +
+      (0 + precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2) | taxon_capture) +
+      (1 | kg_code_3) +
+      (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
+      (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
+    
+    sigma ~ 1 + taxon_capture + (1 | gr(taxon_capture:population), by = taxon_capture)
+  )
 
 model_priors <- c(
   # b
@@ -123,7 +123,7 @@ cat(paste0(
 # successful multi-hour fit, before saving, because $fit$time() isn't valid
 # for backend="cmdstanr" - brms normalizes $fit into an rstan-compatible S4
 # stanfit object regardless of backend, which doesn't support $ access)
-model_fit_file = paste0("models/unified_model_results_zln_11b_", run_tag, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+model_fit_file = paste0("models/unified_model_results_zln_11d_", run_tag, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
 saveRDS(m_zln, file = model_fit_file)
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
 
