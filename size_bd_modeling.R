@@ -38,7 +38,7 @@ model_formula <- bf(
       (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
       (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
     
-    sigma ~ 1 + taxon_capture + (1 | gr(taxon_capture:population), by = taxon_capture)
+    sigma ~ 1 + taxon_capture + (1 | gr(taxon_capture:population, by = taxon_capture))
   )
 
 model_priors <- c(
@@ -76,7 +76,7 @@ n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 # threshold decisions - run concurrently as separate Slurm jobs against the
 # same script without clobbering each other's output. RUN_TAG defaults to
 # the data file's basename so output is traceable even if left unset.
-data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-09-11.RData")
+data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-09-16_th10.RData")
 run_tag <- Sys.getenv("RUN_TAG", tools::file_path_sans_ext(basename(data_file)))
 
 # ------------------------------------------------------------
