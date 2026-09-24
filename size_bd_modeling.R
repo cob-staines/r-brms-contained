@@ -21,16 +21,23 @@ cat("\nRunning BRMS model:\n\n")
 
 model_family <- hurdle_lognormal()
 
-model_formula <- bf(
-    bd_load_co10_density ~ 1 + 
+# BD_LOAD_VAR lets the same script run concurrently against different Bd
+# load response variables (e.g. bd_load_co10_density, bd_load_co50_density)
+# as separate Slurm jobs without editing the formula.
+bd_load_var <- Sys.getenv("BD_LOAD_VAR", "bd_load_co10_density")
+
+bd_load_rhs <- "1 +
       life_stage_simple * taxon_capture +
       (precip_mm_10_z  + temp_c_30_z + I(temp_c_30_z^2)) +
       (0 + precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2) | taxon_capture) +
       (1 | kg_code_3) +
       (1 | gr(taxon_capture:population:life_stage_simple, by = taxon_capture)) +
-      (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture)),
-    
-    hu ~ 1 + 
+      (0 + life_stage_simple | gr(taxon_capture:population:year, by = taxon_capture))"
+
+model_formula <- bf(
+    as.formula(paste(bd_load_var, "~", bd_load_rhs)),
+
+    hu ~ 1 +
       life_stage_simple * taxon_capture +
       (precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2)) +
       (0 + precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2) | taxon_capture) +
@@ -73,11 +80,13 @@ n_cores <- as.integer(Sys.getenv("N_CORES", "4"))
 n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 
 # DATA_FILE / RUN_TAG let two (or more) variants - e.g. different Bd load
-# threshold decisions - run concurrently as separate Slurm jobs against the
-# same script without clobbering each other's output. RUN_TAG defaults to
-# the data file's basename so output is traceable even if left unset.
+# threshold decisions, or different BD_LOAD_VAR response variables - run
+# concurrently as separate Slurm jobs against the same script without
+# clobbering each other's output. RUN_TAG defaults to the data file's
+# basename plus the Bd load variable so output is traceable and distinct
+# across BD_LOAD_VAR runs even if left unset.
 data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-09-23.RData")
-run_tag <- Sys.getenv("RUN_TAG", tools::file_path_sans_ext(basename(data_file)))
+run_tag <- Sys.getenv("RUN_TAG", paste0(tools::file_path_sans_ext(basename(data_file)), "_", bd_load_var))
 
 # ------------------------------------------------------------
 # Execution
