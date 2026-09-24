@@ -99,6 +99,8 @@ if (!dir.exists("models")) dir.create("models")
 cat(paste0("Loading data from: ", data_file, " (run tag: ", run_tag, ")\n\n"))
 load(data_file)
 
+cat(paste0("BD_LOAD_VAR: ", bd_load_var, "\n\n"))
+
 # fit model
 # refresh: print progress every ~50 iterations (min 1), flushed live to the
 # log (see stdbuf in hpc/*.sbatch) so a running job's pace is visible via
