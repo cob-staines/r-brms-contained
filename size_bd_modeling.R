@@ -22,7 +22,7 @@ cat("\nRunning BRMS model:\n\n")
 model_family <- hurdle_lognormal()
 
 model_formula <- bf(
-    bd_load_co_density ~ 1 + 
+    bd_load_co10_density ~ 1 + 
       life_stage_simple * taxon_capture +
       (precip_mm_10_z  + temp_c_30_z + I(temp_c_30_z^2)) +
       (0 + precip_mm_10_z + temp_c_30_z + I(temp_c_30_z^2) | taxon_capture) +
@@ -76,7 +76,7 @@ n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 # threshold decisions - run concurrently as separate Slurm jobs against the
 # same script without clobbering each other's output. RUN_TAG defaults to
 # the data file's basename so output is traceable even if left unset.
-data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-09-16_th10.RData")
+data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-09-23.RData")
 run_tag <- Sys.getenv("RUN_TAG", tools::file_path_sans_ext(basename(data_file)))
 
 # ------------------------------------------------------------
