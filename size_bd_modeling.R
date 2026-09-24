@@ -123,7 +123,7 @@ cat(paste0(
 # successful multi-hour fit, before saving, because $fit$time() isn't valid
 # for backend="cmdstanr" - brms normalizes $fit into an rstan-compatible S4
 # stanfit object regardless of backend, which doesn't support $ access)
-model_fit_file = paste0("models/unified_model_results_zln_11d_", run_tag, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
+model_fit_file = paste0("models/unified_model_results_zln_", run_tag, "_", format(Sys.time(), "%Y%m%d_%H%M%S"), ".rds")
 saveRDS(m_zln, file = model_fit_file)
 cat(paste0("Done. Model fit saved to:\n\n\t", model_fit_file, "\n\n"))
 
