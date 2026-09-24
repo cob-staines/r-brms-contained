@@ -14,6 +14,14 @@
 #   sbatch -J size_bd_threshA --export=ALL,DATA_FILE=data/bd_model_env_threshA.RData,RUN_TAG=threshA hpc/run_size_bd_modeling.sbatch
 #   sbatch -J size_bd_threshB --export=ALL,DATA_FILE=data/bd_model_env_threshB.RData,RUN_TAG=threshB hpc/run_size_bd_modeling.sbatch
 #
+# Or, to compare different Bd load response variables against the SAME data
+# file, override BD_LOAD_VAR instead (RUN_TAG defaults to
+# "<data file>_<BD_LOAD_VAR>" so these don't collide even without setting
+# RUN_TAG explicitly):
+#
+#   sbatch -J size_bd_co10 --export=ALL,BD_LOAD_VAR=bd_load_co10_density hpc/run_size_bd_modeling.sbatch
+#   sbatch -J size_bd_co50 --export=ALL,BD_LOAD_VAR=bd_load_co50_density hpc/run_size_bd_modeling.sbatch
+#
 # Run hpc/pull_image.sbatch once first if r-brms.sif doesn't exist yet -
 # two concurrent jobs both trying to pull it the first time will race.
 # ============================================================

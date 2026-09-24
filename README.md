@@ -168,6 +168,23 @@ to change the model; edit the run-parameters section or the env vars passed
 into the script (locally, as a timing probe, or full-scale on the cluster)
 to change how it runs.
 
+The Bd load response variable is also an env var rather than hardcoded, so
+several variants can run concurrently as separate jobs against the same
+script without editing it:
+- `BD_LOAD_VAR` (default `bd_load_co10_density`) — the response column used
+  in the formula, e.g. swap in `bd_load_co50_density` for a different Bd
+  load density cutoff.
+- `DATA_FILE` (default `data/bd_model_env_unified_2026-09-23.RData`) — the
+  input `.RData` to fit against.
+- `RUN_TAG` — identifies output files (`models/unified_model_results_zln_<RUN_TAG>_<timestamp>.rds`);
+  defaults to `<DATA_FILE basename>_<BD_LOAD_VAR>`, so concurrent runs that
+  share a data file but use different `BD_LOAD_VAR` values (or vice versa)
+  still get distinct output automatically. Override explicitly if you want a
+  more readable tag.
+
+See the `BD_LOAD_VAR` example in `hpc/run_size_bd_modeling.sbatch` for
+submitting two such variants side by side on the cluster.
+
 ## Multithreading
 
 `brm()` supports within-chain multithreading via
