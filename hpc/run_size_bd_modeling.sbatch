@@ -28,7 +28,7 @@
 #SBATCH -p grit_nodes
 #SBATCH -c 8                    # must equal N_CORES * N_THREADS_PER_CHAIN below (see brms threading:
                                  # https://cran.r-project.org/web/packages/brms/vignettes/brms_threading.html)
-#SBATCH --mem=32G                # TODO: still a guess, but a 16GB local VM already crashed at these
+#SBATCH --mem=48G                # TODO: still a guess, but a 16GB local VM already crashed at these
                                   #       exact settings (chains=4, iter=4000, warmup=2000), so treat
                                   #       32G as known-insufficient. Run hpc/timing_probe.sbatch first
                                   #       and check `sacct -j <jobid> --format=MaxRSS` (chains=4 there
