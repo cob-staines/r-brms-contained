@@ -31,8 +31,8 @@ cat("\nRunning BRMS size ~ Bd GAM models:\n\n")
 # n_cores below is chains run in parallel; total CPUs actually used is
 # n_cores * n_threads, so request that many in --cpus-per-task/-c in Slurm.
 n_chains <- as.integer(Sys.getenv("N_CHAINS", "4"))
-n_iter <- as.integer(Sys.getenv("N_ITER", "2000"))
-n_warmup <- as.integer(Sys.getenv("N_WARMUP", "1000"))
+n_iter <- as.integer(Sys.getenv("N_ITER", "4000"))
+n_warmup <- as.integer(Sys.getenv("N_WARMUP", "2000"))
 n_cores <- as.integer(Sys.getenv("N_CORES", "4"))
 n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 
