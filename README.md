@@ -196,3 +196,27 @@ threading) alongside `N_CORES`; **total CPUs used is `N_CORES *
 N_THREADS_PER_CHAIN`**, so the Slurm `-c`/`--cpus-per-task` request must
 equal that product — the `hpc/*.sbatch` scripts export both env vars right
 next to the `-c` directive as a reminder to keep them in sync.
+### Per-species size ~ Bd GAMs
+
+`size_bd_gam_modeling.R` is the script version of
+`size_bd_gam/02_size_bd_GAM_modeling.qmd` (size_bd_load_analysis repo). It
+fits one hurdle-lognormal GAM per species, with a multivariate normal prior
+on the env slopes built from the unified m11d model's new-taxon predictive
+distribution. `hpc/run_size_bd_gam_modeling.sbatch` runs it as a Slurm array
+job, one species per task (index → species mapping is in the script header).
+
+Push both inputs up first:
+```bash
+rsync -avr size_bd_gam/intermediates/brms_data_gam_2026-09-28.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+rsync -avr size_bd_unified/unified_models/unified_model_results_zln_m11d_co100_20260926_174424_with_loo.rds <username>@ssh.grit.ucsb.edu:~/r-brms-contained/models/
+```
+Then:
+```bash
+sbatch hpc/run_size_bd_gam_modeling.sbatch              # all species
+sbatch --array=3,8 hpc/run_size_bd_gam_modeling.sbatch  # just rana_cascadae, rana_sierrae
+tail -f logs/size_bd_gam_<jobid>_<index>.out
+```
+Fits land in `models/size_bd_gam/` as `size_bd_gam_model_zln_m3_<species>.rds`
+(with loo, the name the analysis notebooks read) plus a `_no_loo.rds` copy
+saved before loo runs. Outside Slurm, set `SPECIES=<taxon_capture>` to fit one
+species, or leave it unset to fit all sequentially.
