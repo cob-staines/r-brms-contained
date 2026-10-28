@@ -22,9 +22,10 @@ cat("\nRunning BRMS model:\n\n")
 model_family <- hurdle_lognormal()
 
 # BD_LOAD_VAR lets the same script run concurrently against different Bd
-# load response variables (e.g. bd_load_co10_density, bd_load_co50_density)
-# as separate Slurm jobs without editing the formula.
-bd_load_var <- Sys.getenv("BD_LOAD_VAR", "bd_load_co10_density")
+# load response variables (bd_load_co<X>_density, X = 0, 30, 100, 300, 1000;
+# co100 is the main analysis, the others a sensitivity analysis) as separate
+# Slurm jobs without editing the formula (see hpc/run_size_bd_cutoffs.sbatch).
+bd_load_var <- Sys.getenv("BD_LOAD_VAR", "bd_load_co100_density")
 
 bd_load_rhs <- "1 +
       life_stage_simple * taxon_capture +
@@ -85,7 +86,7 @@ n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 # clobbering each other's output. RUN_TAG defaults to the data file's
 # basename plus the Bd load variable so output is traceable and distinct
 # across BD_LOAD_VAR runs even if left unset.
-data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-09-23.RData")
+data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-10-28.RData")
 run_tag <- Sys.getenv("RUN_TAG", paste0(tools::file_path_sans_ext(basename(data_file)), "_", bd_load_var))
 
 # ------------------------------------------------------------
@@ -100,6 +101,24 @@ cat(paste0("Loading data from: ", data_file, " (run tag: ", run_tag, ")\n\n"))
 load(data_file)
 
 cat(paste0("BD_LOAD_VAR: ", bd_load_var, "\n\n"))
+
+# fail before fitting rather than after days of sampling: brm() silently drops
+# rows with NA in any model variable, and a missing response column would only
+# error after compilation
+model_vars <- unique(c(bd_load_var, all.vars(model_formula$formula),
+                       # right-hand sides only: the dpar formulas have hu / sigma on the left
+                       unlist(lapply(model_formula$pforms, function(f) all.vars(f[[3]])))))
+missing_vars <- setdiff(model_vars, names(brms_data))
+if (length(missing_vars) > 0) {
+  stop("model variables not in brms_data: ", paste(missing_vars, collapse = ", "))
+}
+n_na <- colSums(is.na(brms_data[model_vars]))
+if (any(n_na > 0)) {
+  print(n_na[n_na > 0])
+  stop("NAs in model variables; brm() would drop these rows")
+}
+cat(paste0("Rows: ", nrow(brms_data), ", taxa: ", length(unique(brms_data$taxon_capture)),
+           ", nonzero response: ", round(mean(brms_data[[bd_load_var]] > 0), 3), "\n\n"))
 
 # fit model
 # refresh: print progress every ~50 iterations (min 1), flushed live to the

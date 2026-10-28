@@ -171,10 +171,10 @@ to change how it runs.
 The Bd load response variable is also an env var rather than hardcoded, so
 several variants can run concurrently as separate jobs against the same
 script without editing it:
-- `BD_LOAD_VAR` (default `bd_load_co10_density`) — the response column used
-  in the formula, e.g. swap in `bd_load_co50_density` for a different Bd
-  load density cutoff.
-- `DATA_FILE` (default `data/bd_model_env_unified_2026-09-23.RData`) — the
+- `BD_LOAD_VAR` (default `bd_load_co100_density`) — the response column used
+  in the formula: `bd_load_co<X>_density` for X = 0, 30, 100 (main), 300 or
+  1000 copies per swab.
+- `DATA_FILE` (default `data/bd_model_env_unified_2026-10-28.RData`) — the
   input `.RData` to fit against.
 - `RUN_TAG` — identifies output files (`models/unified_model_results_zln_<RUN_TAG>_<timestamp>.rds`);
   defaults to `<DATA_FILE basename>_<BD_LOAD_VAR>`, so concurrent runs that
@@ -182,8 +182,24 @@ script without editing it:
   still get distinct output automatically. Override explicitly if you want a
   more readable tag.
 
-See the `BD_LOAD_VAR` example in `hpc/run_size_bd_modeling.sbatch` for
-submitting two such variants side by side on the cluster.
+Before fitting, the script stops if `BD_LOAD_VAR` or any other model
+variable is missing from `brms_data`, or has NAs (`brm()` would otherwise
+silently drop those rows).
+
+### All Bd load cutoffs
+
+`hpc/run_size_bd_cutoffs.sbatch` fits the model once per cutoff as a Slurm
+array job (index → cutoff: 0 co0, 1 co30, 2 co100, 3 co300, 4 co1000), each
+task with `RUN_TAG=m11d_<cutoff>` so outputs are named
+`models/unified_model_results_zln_m11d_<cutoff>_<timestamp>[_with_loo].rds`,
+as `size_bd_unified/02` expects. Push the data up, then:
+```bash
+rsync -avr size_bd_unified/intermediates/bd_model_env_unified_2026-10-28.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+sbatch hpc/pull_image.sbatch                       # once, if r-brms.sif is missing
+sbatch hpc/run_size_bd_cutoffs.sbatch              # all five cutoffs
+sbatch --array=2 hpc/run_size_bd_cutoffs.sbatch    # co100 only
+tail -f logs/size_bd_cutoff_<jobid>_<index>.out
+```
 
 ## Multithreading
 

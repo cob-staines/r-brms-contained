@@ -19,8 +19,11 @@
 # "<data file>_<BD_LOAD_VAR>" so these don't collide even without setting
 # RUN_TAG explicitly):
 #
-#   sbatch -J size_bd_co10 --export=ALL,BD_LOAD_VAR=bd_load_co10_density hpc/run_size_bd_modeling.sbatch
-#   sbatch -J size_bd_co50 --export=ALL,BD_LOAD_VAR=bd_load_co50_density hpc/run_size_bd_modeling.sbatch
+#   sbatch -J size_bd_co30 --export=ALL,BD_LOAD_VAR=bd_load_co30_density hpc/run_size_bd_modeling.sbatch
+#   sbatch -J size_bd_co300 --export=ALL,BD_LOAD_VAR=bd_load_co300_density hpc/run_size_bd_modeling.sbatch
+#
+# To fit all Bd load cutoffs (co0, co30, co100, co300, co1000) at once, use
+# hpc/run_size_bd_cutoffs.sbatch (Slurm array, one cutoff per task) instead.
 #
 # Run hpc/pull_image.sbatch once first if r-brms.sif doesn't exist yet -
 # two concurrent jobs both trying to pull it the first time will race.
