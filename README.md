@@ -221,12 +221,15 @@ on the env slopes built from the unified m11d model's new-taxon predictive
 distribution. `hpc/run_size_bd_gam_modeling.sbatch` runs it as a Slurm array
 job, one species per task (index → species mapping is in the script header).
 
-Push both inputs up first:
+The env prior comes from the newest
+`models/unified_model_results_zln_m11d_co100_*_with_loo.rds`, i.e. the co100
+fit from `hpc/run_size_bd_cutoffs.sbatch` if it ran on this cluster (set
+`PRIOR_MODEL_FILE` to use a different one). Push the GAM data up first:
 ```bash
 rsync -avr size_bd_gam/intermediates/brms_data_gam_2026-09-28.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
-rsync -avr size_bd_unified/unified_models/unified_model_results_zln_m11d_co100_20260926_174424_with_loo.rds <username>@ssh.grit.ucsb.edu:~/r-brms-contained/models/
 ```
-Then:
+Then, once the co100 fit exists (or chain it with
+`--dependency=afterok:<cutoff jobid>_2`):
 ```bash
 sbatch hpc/run_size_bd_gam_modeling.sbatch              # all species
 sbatch --array=3,8 hpc/run_size_bd_gam_modeling.sbatch  # just rana_cascadae, rana_sierrae

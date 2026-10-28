@@ -37,7 +37,18 @@ n_cores <- as.integer(Sys.getenv("N_CORES", "4"))
 n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 
 data_file <- Sys.getenv("DATA_FILE", "data/brms_data_gam_2026-09-28.RData")
-prior_model_file <- Sys.getenv("PRIOR_MODEL_FILE", "models/unified_model_results_zln_m11d_co100_20260926_174424_with_loo.rds")
+# env prior source: the newest m11d co100 fit in models/ (written there by
+# hpc/run_size_bd_cutoffs.sbatch; the timestamp in the name sorts chronologically),
+# unless PRIOR_MODEL_FILE names one explicitly
+prior_model_file <- Sys.getenv("PRIOR_MODEL_FILE", "")
+if (prior_model_file == "") {
+  prior_candidates <- Sys.glob("models/unified_model_results_zln_m11d_co100_*_with_loo.rds")
+  if (length(prior_candidates) == 0) {
+    stop("no models/unified_model_results_zln_m11d_co100_*_with_loo.rds found: ",
+         "fit co100 first (sbatch --array=2 hpc/run_size_bd_cutoffs.sbatch) or set PRIOR_MODEL_FILE")
+  }
+  prior_model_file <- sort(prior_candidates, decreasing = TRUE)[1]
+}
 out_dir <- Sys.getenv("OUT_DIR", "models/size_bd_gam")
 run_loo <- as.logical(Sys.getenv("RUN_LOO", "TRUE"))
 

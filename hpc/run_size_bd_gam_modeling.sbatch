@@ -20,8 +20,12 @@
 #
 # Required inputs (both gitignored - rsync them up first, see README):
 #   DATA_FILE         data/brms_data_gam_2026-09-28.RData
-#   PRIOR_MODEL_FILE  models/unified_model_results_zln_m11d_co100_20260926_174424_with_loo.rds
+#   PRIOR_MODEL_FILE  default: newest models/unified_model_results_zln_m11d_co100_*_with_loo.rds
+#                     (written by hpc/run_size_bd_cutoffs.sbatch, task 2)
 # Override either with --export=ALL,DATA_FILE=...,PRIOR_MODEL_FILE=...
+#
+# To start automatically once the co100 fit finishes:
+#   sbatch --dependency=afterok:<cutoff jobid>_2 hpc/run_size_bd_gam_modeling.sbatch
 # Output goes to models/size_bd_gam/ (OUT_DIR).
 #
 # Run hpc/pull_image.sbatch once first if r-brms.sif doesn't exist yet -
