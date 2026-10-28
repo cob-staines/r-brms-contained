@@ -8,18 +8,20 @@
 #
 # Array index -> species is the alphabetical order of taxon_capture
 # in DATA_FILE (printed at the top of each task's log):
-#   0 colostethus_panamansis     5 rana_clamitans
-#   1 lithobates_warszewitschii  6 rana_muscosa
-#   2 pseudacris_crucifer        7 rana_pipiens
-#   3 rana_cascadae              8 rana_sierrae
-#   4 rana_catesbeiana           9 silverstoneia_flotator
+#   0 colostethus_panamansis      7 rana_catesbeiana
+#   1 lithobates_chiricahuensis   8 rana_clamitans
+#   2 lithobates_sphenocephalus   9 rana_muscosa
+#   3 lithobates_warszewitschii  10 rana_pipiens
+#   4 notophthalmus_viridescens  11 rana_sierrae
+#   5 pseudacris_crucifer        12 silverstoneia_flotator
+#   6 rana_cascadae
 # If the species in the data change, update --array below to match.
 #
 # Rerun a subset of species by overriding --array on the command line:
-#   sbatch --array=3,8 hpc/run_size_bd_gam_modeling.sbatch
+#   sbatch --array=6,11 hpc/run_size_bd_gam_modeling.sbatch
 #
 # Required inputs (both gitignored - rsync them up first, see README):
-#   DATA_FILE         data/brms_data_gam_2026-09-28.RData
+#   DATA_FILE         data/brms_data_gam_2026-10-28.RData
 #   PRIOR_MODEL_FILE  default: newest models/unified_model_results_zln_m11d_co100_*_with_loo.rds
 #                     (written by hpc/run_size_bd_cutoffs.sbatch, task 2)
 # Override either with --export=ALL,DATA_FILE=...,PRIOR_MODEL_FILE=...
@@ -32,7 +34,7 @@
 # concurrent array tasks all trying to pull it the first time will race.
 # ============================================================
 #SBATCH -p grit_nodes
-#SBATCH --array=0-9
+#SBATCH --array=0-12
 #SBATCH -c 4                    # must equal N_CORES * N_THREADS_PER_CHAIN below
 #SBATCH --mem=24G                # TODO: guess. Each task loads the ~850MB (compressed) unified
                                   #       model to build the env prior, then frees it before fitting.

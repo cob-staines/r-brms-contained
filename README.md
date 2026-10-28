@@ -226,13 +226,13 @@ The env prior comes from the newest
 fit from `hpc/run_size_bd_cutoffs.sbatch` if it ran on this cluster (set
 `PRIOR_MODEL_FILE` to use a different one). Push the GAM data up first:
 ```bash
-rsync -avr size_bd_gam/intermediates/brms_data_gam_2026-09-28.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+rsync -avr size_bd_gam/intermediates/brms_data_gam_2026-10-28.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
 ```
 Then, once the co100 fit exists (or chain it with
 `--dependency=afterok:<cutoff jobid>_2`):
 ```bash
 sbatch hpc/run_size_bd_gam_modeling.sbatch              # all species
-sbatch --array=3,8 hpc/run_size_bd_gam_modeling.sbatch  # just rana_cascadae, rana_sierrae
+sbatch --array=6,11 hpc/run_size_bd_gam_modeling.sbatch # just rana_cascadae, rana_sierrae
 tail -f logs/size_bd_gam_<jobid>_<index>.out
 ```
 Fits land in `models/size_bd_gam/` as `size_bd_gam_model_zln_m3_<species>.rds`

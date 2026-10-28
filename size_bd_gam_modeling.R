@@ -36,7 +36,7 @@ n_warmup <- as.integer(Sys.getenv("N_WARMUP", "2000"))
 n_cores <- as.integer(Sys.getenv("N_CORES", "4"))
 n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 
-data_file <- Sys.getenv("DATA_FILE", "data/brms_data_gam_2026-09-28.RData")
+data_file <- Sys.getenv("DATA_FILE", "data/brms_data_gam_2026-10-28.RData")
 # env prior source: the newest m11d co100 fit in models/ (written there by
 # hpc/run_size_bd_cutoffs.sbatch; the timestamp in the name sorts chronologically),
 # unless PRIOR_MODEL_FILE names one explicitly
