@@ -20,6 +20,13 @@
 # Rerun a subset of species by overriding --array on the command line:
 #   sbatch --array=6,11 hpc/run_size_bd_gam_modeling.sbatch
 #
+# Resource tiers (sbatch options on the command line override the #SBATCH
+# defaults below; -c sets threads per chain, see N_THREADS_PER_CHAIN):
+#   sbatch --array=0,1,2,3,10,12 -c 4 --mem=16G -t 00:30:00  hpc/run_size_bd_gam_modeling.sbatch  # n < 1k
+#   sbatch --array=5,7,8         -c 4 --mem=16G -t 03:00:00  hpc/run_size_bd_gam_modeling.sbatch  # n 1-3k
+#   sbatch --array=4,6,9         -c 8 --mem=24G -t 3-00:00:00 hpc/run_size_bd_gam_modeling.sbatch # n 5-7k
+#   sbatch --array=11            -c 8 --mem=48G -t 3-00:00:00 hpc/run_size_bd_gam_modeling.sbatch # n 27k
+#
 # Required inputs (both gitignored - rsync them up first, see README):
 #   DATA_FILE         data/brms_data_gam_2026-10-28.RData
 #   PRIOR_MODEL_FILE  default: newest models/unified_model_results_zln_m11d_co100_*_with_loo.rds
@@ -35,7 +42,7 @@
 # ============================================================
 #SBATCH -p grit_nodes
 #SBATCH --array=0-12
-#SBATCH -c 4                    # must equal N_CORES * N_THREADS_PER_CHAIN below
+#SBATCH -c 4                    # multiple of N_CORES (4); -c 8 gives 2 threads per chain
 #SBATCH --mem=24G                # TODO: guess. Each task loads the ~850MB (compressed) unified
                                   #       model to build the env prior, then frees it before fitting.
                                   #       Check `sacct -j <jobid> --format=JobID,MaxRSS` after a run
@@ -57,9 +64,10 @@ if [ ! -f "$IMAGE" ]; then
   singularity pull "$IMAGE" docker://ghcr.io/cob-staines/r-brms-contained:latest
 fi
 
-# N_CORES * N_THREADS_PER_CHAIN must equal -c above.
+# N_CORES * N_THREADS_PER_CHAIN equals -c: threads per chain follow -c, so
+# `sbatch -c 8 ...` on the command line runs 2 threads per chain.
 export N_CORES=4
-export N_THREADS_PER_CHAIN=1
+export N_THREADS_PER_CHAIN=$(( ${SLURM_CPUS_PER_TASK:-4} / N_CORES ))
 
 # stdbuf forces line-buffered stdout/stderr so progress flushes to the log
 # file live - lets you `tail -f` this task's log to see iteration pace.
