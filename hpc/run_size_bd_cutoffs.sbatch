@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# Bd load cutoff runs: fits size_bd_modeling.R (m11d) once per Bd load
+# Bd load cutoff runs: fits size_bd_modeling.R (m11g) once per Bd load
 # cutoff as a Slurm array job, one cutoff per task, all in parallel.
 #
 # Submit with: sbatch hpc/run_size_bd_cutoffs.sbatch
@@ -16,10 +16,10 @@
 #   sbatch --array=0,4 hpc/run_size_bd_cutoffs.sbatch    # co0 and co1000
 #
 # Required input (gitignored - rsync it up first, see README):
-#   DATA_FILE  data/bd_model_env_unified_2026-10-28.RData
+#   DATA_FILE  data/bd_model_env_unified_2026-11-12.RData
 # Override with --export=ALL,DATA_FILE=data/<file>.RData
 #
-# Output: models/unified_model_results_zln_m11d_<cutoff>_<timestamp>.rds
+# Output: models/unified_model_results_zln_m11g_<cutoff>_<timestamp>.rds
 # plus a _with_loo.rds copy (the naming size_bd_unified/02 expects).
 #
 # Run hpc/pull_image.sbatch once first if r-brms.sif doesn't exist yet -
@@ -52,9 +52,9 @@ if [ ! -f "$IMAGE" ]; then
   exit 1
 fi
 
-export DATA_FILE="${DATA_FILE:-data/bd_model_env_unified_2026-10-28.RData}"
+export DATA_FILE="${DATA_FILE:-data/bd_model_env_unified_2026-11-12.RData}"
 export BD_LOAD_VAR="bd_load_${CUTOFF}_density"
-export RUN_TAG="m11d_${CUTOFF}"
+export RUN_TAG="m11g_${CUTOFF}"
 
 # N_CORES * N_THREADS_PER_CHAIN must equal -c above.
 export N_CHAINS=4
