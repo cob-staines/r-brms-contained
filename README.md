@@ -174,7 +174,7 @@ script without editing it:
 - `BD_LOAD_VAR` (default `bd_load_co100_density`) — the response column used
   in the formula: `bd_load_co<X>_density` for X = 0, 30, 100 (main), 300 or
   1000 copies per swab.
-- `DATA_FILE` (default `data/bd_model_env_unified_2026-10-28.RData`) — the
+- `DATA_FILE` (default `data/bd_model_env_unified_2026-11-12.RData`) — the
   input `.RData` to fit against.
 - `RUN_TAG` — identifies output files (`models/unified_model_results_zln_<RUN_TAG>_<timestamp>.rds`);
   defaults to `<DATA_FILE basename>_<BD_LOAD_VAR>`, so concurrent runs that
@@ -190,11 +190,11 @@ silently drop those rows).
 
 `hpc/run_size_bd_cutoffs.sbatch` fits the model once per cutoff as a Slurm
 array job (index → cutoff: 0 co0, 1 co30, 2 co100, 3 co300, 4 co1000), each
-task with `RUN_TAG=m11d_<cutoff>` so outputs are named
-`models/unified_model_results_zln_m11d_<cutoff>_<timestamp>[_with_loo].rds`,
+task with `RUN_TAG=m11g_<cutoff>` so outputs are named
+`models/unified_model_results_zln_m11g_<cutoff>_<timestamp>[_with_loo].rds`,
 as `size_bd_unified/02` expects. Push the data up, then:
 ```bash
-rsync -avr size_bd_unified/intermediates/bd_model_env_unified_2026-10-28.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+rsync -avr size_bd_unified/intermediates/bd_model_env_unified_2026-11-12.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
 sbatch hpc/pull_image.sbatch                       # once, if r-brms.sif is missing
 sbatch hpc/run_size_bd_cutoffs.sbatch              # all five cutoffs
 sbatch --array=2 hpc/run_size_bd_cutoffs.sbatch    # co100 only
@@ -217,16 +217,16 @@ next to the `-c` directive as a reminder to keep them in sync.
 `size_bd_gam_modeling.R` is the script version of
 `size_bd_gam/02_size_bd_GAM_modeling.qmd` (size_bd_load_analysis repo). It
 fits one hurdle-lognormal GAM per species, with a multivariate normal prior
-on the env slopes built from the unified m11d model's new-taxon predictive
+on the env slopes built from the unified m11g model's new-taxon predictive
 distribution. `hpc/run_size_bd_gam_modeling.sbatch` runs it as a Slurm array
 job, one species per task (index → species mapping is in the script header).
 
 The env prior comes from the newest
-`models/unified_model_results_zln_m11d_co100_*_with_loo.rds`, i.e. the co100
+`models/unified_model_results_zln_m11g_co100_*_with_loo.rds`, i.e. the co100
 fit from `hpc/run_size_bd_cutoffs.sbatch` if it ran on this cluster (set
 `PRIOR_MODEL_FILE` to use a different one). Push the GAM data up first:
 ```bash
-rsync -avr size_bd_gam/intermediates/brms_data_gam_2026-10-28.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+rsync -avr size_bd_gam/intermediates/brms_data_gam_2026-11-15.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
 ```
 Then, once the co100 fit exists (or chain it with
 `--dependency=afterok:<cutoff jobid>_2`):

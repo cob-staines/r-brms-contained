@@ -5,7 +5,7 @@
 #
 # Each species gets its own hurdle-lognormal GAM, with a
 # multivariate normal prior on the env slopes taken from the
-# new-taxon predictive distribution of the unified model (m11d).
+# new-taxon predictive distribution of the unified model (m11g).
 #
 # Species selection (first match wins):
 #   SPECIES=<taxon_capture>    fit just that species
@@ -36,15 +36,15 @@ n_warmup <- as.integer(Sys.getenv("N_WARMUP", "2000"))
 n_cores <- as.integer(Sys.getenv("N_CORES", "4"))
 n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 
-data_file <- Sys.getenv("DATA_FILE", "data/brms_data_gam_2026-10-28.RData")
-# env prior source: the newest m11d co100 fit in models/ (written there by
+data_file <- Sys.getenv("DATA_FILE", "data/brms_data_gam_2026-11-15.RData")
+# env prior source: the newest m11g co100 fit in models/ (written there by
 # hpc/run_size_bd_cutoffs.sbatch; the timestamp in the name sorts chronologically),
 # unless PRIOR_MODEL_FILE names one explicitly
 prior_model_file <- Sys.getenv("PRIOR_MODEL_FILE", "")
 if (prior_model_file == "") {
-  prior_candidates <- Sys.glob("models/unified_model_results_zln_m11d_co100_*_with_loo.rds")
+  prior_candidates <- Sys.glob("models/unified_model_results_zln_m11g_co100_*_with_loo.rds")
   if (length(prior_candidates) == 0) {
-    stop("no models/unified_model_results_zln_m11d_co100_*_with_loo.rds found: ",
+    stop("no models/unified_model_results_zln_m11g_co100_*_with_loo.rds found: ",
          "fit co100 first (sbatch --array=2 hpc/run_size_bd_cutoffs.sbatch) or set PRIOR_MODEL_FILE")
   }
   prior_model_file <- sort(prior_candidates, decreasing = TRUE)[1]
@@ -86,7 +86,7 @@ cat(paste0("Fitting: ", paste(run_species, collapse = ", "), "\n\n"))
 # ------------------------------------------------------------
 # New-taxon predictive prior for the env slopes (precip, temp, temp^2)
 # ------------------------------------------------------------
-# per draw: fixed effect + a new taxon offset drawn from the m11d taxon RE distribution,
+# per draw: fixed effect + a new taxon offset drawn from the m11g taxon RE distribution,
 # N(0, Sigma) with Sigma from sd_taxon_capture and cor_taxon_capture. this uses no
 # species-specific r_taxon_capture, so each species' data is not counted twice
 # (once in the prior, again in its GAM). the prior is therefore the same for all species.
