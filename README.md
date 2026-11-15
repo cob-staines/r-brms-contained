@@ -232,7 +232,7 @@ Then, once the co100 fit exists (or chain it with
 `--dependency=afterok:<cutoff jobid>_2`):
 ```bash
 sbatch hpc/run_size_bd_gam_modeling.sbatch              # all species
-sbatch --array=6,11 hpc/run_size_bd_gam_modeling.sbatch # just rana_cascadae, rana_sierrae
+sbatch --array=7,12 hpc/run_size_bd_gam_modeling.sbatch # just rana_cascadae, rana_sierrae
 tail -f logs/size_bd_gam_<jobid>_<index>.out
 ```
 Fits land in `models/size_bd_gam/` as `size_bd_gam_model_zln_m3_<species>.rds`

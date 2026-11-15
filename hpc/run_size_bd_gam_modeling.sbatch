@@ -8,24 +8,24 @@
 #
 # Array index -> species is the alphabetical order of taxon_capture
 # in DATA_FILE (printed at the top of each task's log):
-#   0 colostethus_panamansis      7 rana_catesbeiana
-#   1 lithobates_chiricahuensis   8 rana_clamitans
-#   2 lithobates_sphenocephalus   9 rana_muscosa
-#   3 lithobates_warszewitschii  10 rana_pipiens
-#   4 notophthalmus_viridescens  11 rana_sierrae
-#   5 pseudacris_crucifer        12 silverstoneia_flotator
-#   6 rana_cascadae
+#   0 anaxyrus_canorus            7 rana_cascadae
+#   1 colostethus_panamansis      8 rana_catesbeiana
+#   2 lithobates_chiricahuensis   9 rana_clamitans
+#   3 lithobates_sphenocephalus  10 rana_muscosa
+#   4 lithobates_warszewitschii  11 rana_pipiens
+#   5 notophthalmus_viridescens  12 rana_sierrae
+#   6 pseudacris_crucifer        13 silverstoneia_flotator
 # If the species in the data change, update --array below to match.
 #
 # Rerun a subset of species by overriding --array on the command line:
-#   sbatch --array=6,11 hpc/run_size_bd_gam_modeling.sbatch
+#   sbatch --array=7,12 hpc/run_size_bd_gam_modeling.sbatch
 #
 # Resource tiers (sbatch options on the command line override the #SBATCH
 # defaults below; -c sets threads per chain, see N_THREADS_PER_CHAIN):
-#   sbatch --array=0,1,2,3,10,12 -c 4 --mem=16G -t 00:30:00  hpc/run_size_bd_gam_modeling.sbatch  # n < 1k
-#   sbatch --array=5,7,8         -c 4 --mem=16G -t 03:00:00  hpc/run_size_bd_gam_modeling.sbatch  # n 1-3k
-#   sbatch --array=4,6,9         -c 8 --mem=24G -t 3-00:00:00 hpc/run_size_bd_gam_modeling.sbatch # n 5-7k
-#   sbatch --array=11            -c 8 --mem=48G -t 3-00:00:00 hpc/run_size_bd_gam_modeling.sbatch # n 27k
+#   sbatch --array=1,2,3,4,11,13 -c 4 --mem=16G -t 00:30:00  hpc/run_size_bd_gam_modeling.sbatch  # n < 1k
+#   sbatch --array=0,6,8,9       -c 4 --mem=16G -t 03:00:00  hpc/run_size_bd_gam_modeling.sbatch  # n 1-3k
+#   sbatch --array=5,7,10        -c 8 --mem=24G -t 3-00:00:00 hpc/run_size_bd_gam_modeling.sbatch # n 5-7k
+#   sbatch --array=12            -c 8 --mem=48G -t 3-00:00:00 hpc/run_size_bd_gam_modeling.sbatch # n 27k
 #
 # Required inputs (both gitignored - rsync them up first, see README):
 #   DATA_FILE         data/brms_data_gam_2026-11-15.RData
@@ -41,7 +41,7 @@
 # concurrent array tasks all trying to pull it the first time will race.
 # ============================================================
 #SBATCH -p grit_nodes
-#SBATCH --array=0-12
+#SBATCH --array=0-13
 #SBATCH -c 4                    # multiple of N_CORES (4); -c 8 gives 2 threads per chain
 #SBATCH --mem=24G                # TODO: guess. Each task loads the ~850MB (compressed) unified
                                   #       model to build the env prior, then frees it before fitting.
