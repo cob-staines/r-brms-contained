@@ -9,34 +9,35 @@
 # of each task's log). 34 species (0-33) as of the 2026-11 screen. If the
 # species file changes, update the array indices in the groups below.
 #
+# To submit all three groups at once: bash hpc/submit_size_bd_season_all.sh
+#
 # Resource groups (sbatch options on the command line override the #SBATCH
 # defaults below, which are the small group). Estimates from the local timing
 # test in size_bd_season/02_season_all_species.qmd (4 chains, 300 warmup +
-# 100 sampling, scaled to 2000 + 2000; slowest chain):
+# 100 sampling, scaled to 2000 + 2000; slowest chain; at adapt_delta 0.95):
 #   s. flotator      n 0.6k   est 0.07 h   (6 divergences in the test)
 #   r. catesbeiana   n 1.8k   est 0.44 h
 #   n. viridescens   n 5.3k   est 1.5 h    (10 divergences in the test)
 # Time grows faster than n; other species are extrapolated from these.
+# ADAPT_DELTA defaults to 0.99 in the R script (~1.5-2x slower than 0.95; the
+# estimates below include that); r. sierrae runs at 0.95.
 #
-#   small (n < 1.5k, est <= ~0.3 h): 28 species, 4 h / 8G (the defaults)
+#   small (n < 1.5k, est <= ~0.6 h at 0.99): 28 species, 4 h / 8G (the defaults)
 #     sbatch hpc/run_size_bd_season_all_modeling.sbatch
-#   intermediate (n 1.8-6.8k, est ~0.4-3 h): n. viridescens (16), r. cascadae (20),
+#   intermediate (n 1.8-6.8k, est ~0.8-6 h at 0.99): n. viridescens (16), r. cascadae (20),
 #     r. catesbeiana (21), r. clamitans (22), r. muscosa (24)
 #     sbatch --array=16,20-22,24 --mem=16G -t 12:00:00 hpc/run_size_bd_season_all_modeling.sbatch
-#   large (n 26.6k, est ~13-15 h): r. sierrae (26)
-#     sbatch --array=26 --mem=48G -t 2-00:00:00 hpc/run_size_bd_season_all_modeling.sbatch
+#   large (n 26.6k, est ~13-15 h at 0.95): r. sierrae (26)
+#     sbatch --array=26 --mem=48G -t 2-00:00:00 --export=ALL,ADAPT_DELTA=0.95 hpc/run_size_bd_season_all_modeling.sbatch
 #
-# Headroom (~4x or more) covers slower nodes, the warmup extrapolation (the
-# least reliable part), and a resubmission at a higher ADAPT_DELTA (roughly
-# 1.5-2x slower).
-#
-# Divergences: fit first at the default ADAPT_DELTA (0.95), check the
-# convergence table in 02_season_all_species.qmd, then resubmit only the
-# species with divergences at a higher target, keeping each species' group
-# resources, e.g.:
-#   sbatch --array=32 --export=ALL,ADAPT_DELTA=0.99 hpc/run_size_bd_season_all_modeling.sbatch
-#   sbatch --array=16 --mem=16G -t 12:00:00 --export=ALL,ADAPT_DELTA=0.99 hpc/run_size_bd_season_all_modeling.sbatch
-# A resubmission overwrites that species' model files in OUT_DIR.
+# Divergences: check the convergence table in 02_season_all_species.qmd.
+#   - r. sierrae diverging at 0.95: resubmit at 0.99 with more time, e.g.
+#       sbatch --array=26 --mem=48G -t 3-00:00:00 --export=ALL,ADAPT_DELTA=0.99 hpc/run_size_bd_season_all_modeling.sbatch
+#   - a species still diverging at 0.99 points to the model (e.g. a random
+#     effect with too few levels, or too loose a prior), not the sampler:
+#     look at the model before raising adapt_delta further.
+# A resubmission overwrites that species' model files in OUT_DIR. Record any
+# per-species change in season_adapt_delta() in 02_season_all_species.qmd.
 #
 # Memory: not measured. Check actual use and trim with
 #   sacct -j <jobid> --format=JobID,Elapsed,MaxRSS

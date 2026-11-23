@@ -47,10 +47,14 @@ species_file <- Sys.getenv("SPECIES_FILE", "data/01_season_species_all.csv")
 out_dir <- Sys.getenv("OUT_DIR", "models/size_bd_season_all")
 run_loo <- as.logical(Sys.getenv("RUN_LOO", "TRUE"))
 
-# sampler target acceptance rate. 0.95 matches 02_season_all_species.qmd; raise it (e.g. 0.99)
-# when resubmitting species with divergences: smaller steps follow tight curvature (such as a
-# smooth sd shrinking toward 0) better, at the cost of more steps per iteration (slower)
-adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.95"))
+# sampler target acceptance rate. a higher target makes the sampler take smaller steps, which
+# follow tight curvature in the posterior (e.g. a smooth sd shrinking toward 0, or sparse
+# population-year effects) without divergences, at the cost of more steps per iteration
+# (~1.5-2x slower). it changes how the posterior is explored, not the model.
+# default 0.99 (the local timing test showed divergences at 0.95 in small / sparse species);
+# r. sierrae is submitted with ADAPT_DELTA=0.95 (well informed, and 0.99 would roughly double a
+# ~13-15 h run). keep in sync with season_adapt_delta() in 02_season_all_species.qmd.
+adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
 
 # ------------------------------------------------------------
 # Load data, choose species
