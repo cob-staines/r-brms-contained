@@ -239,3 +239,30 @@ Fits land in `models/size_bd_gam/` as `size_bd_gam_model_zln_m3_<species>.rds`
 (with loo, the name the analysis notebooks read) plus a `_no_loo.rds` copy
 saved before loo runs. Outside Slurm, set `SPECIES=<taxon_capture>` to fit one
 species, or leave it unset to fit all sequentially.
+
+### Per-species stage contrast models (size_bd_contrast)
+
+`size_bd_contrast_modeling.R` is the script version of
+`size_bd_contrast/02_contrast_modeling.qmd` (size_bd_load_analysis repo; model
+description in `size_bd_contrast/README.md`). It fits one hurdle-lognormal
+model per job (species x variant), with the subadult - adult contrast varying
+by population, site-year and 14-day event as each species' tiers allow.
+Jobs and tiers come from `01_contrast_jobs.csv`, written by
+`size_bd_contrast/01_contrast_tiers.Rmd`. Push it (and the m11g data file, if
+not already there) up:
+```bash
+rsync -avr size_bd_contrast/intermediates/01_contrast_jobs.csv <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+rsync -avr size_bd_unified/intermediates/bd_model_env_unified_2026-11-12.RData <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+```
+Then submit the four resource groups (indices and estimates in the header of
+`hpc/run_size_bd_contrast_modeling.sbatch`):
+```bash
+sbatch hpc/pull_image.sbatch                 # once, if r-brms.sif is missing
+bash hpc/submit_size_bd_contrast.sh
+tail -f logs/size_bd_contrast_<jobid>_<index>.out
+```
+Fits land in `models/size_bd_contrast/` as
+`size_bd_contrast_model_zln_c1_<species>_<variant>.rds` (with loo) plus a
+`_no_loo.rds` copy saved before loo runs. Outside Slurm, set
+`JOB=<species>_<variant>` (e.g. `rana_clamitans_main`) to fit one job, or
+leave it unset to fit all sequentially.
