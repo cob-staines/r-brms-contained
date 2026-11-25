@@ -9,13 +9,13 @@
 # adult contrast; intercepts vary by population, site-year and 14-day
 # event, and the contrast varies at the levels the data support (tier):
 #   A: population + site-year + event   B: population + site-year
-#   C: population                       fixed: none (mean contrast only)
+#   C: population                       D: none (mean contrast only)
 #   none (mu only): no stage term
-# Tiers are set separately for prevalence (hu) and load (mu). Model
-# structure rules (README "Model structure rules"): tier "fixed" = one
-# mean contrast, no contrast sd (R1); site-year / event levels a part
-# cannot separate are left out (R2); sigma ~ 1 where few sites have
-# positives (R3). All read from the job table's structure columns.
+# Tiers are set separately for prevalence (hu) and load (mu), by the
+# contrast levels rule (README "Contrast levels"). Nuisance structure
+# (README "Nuisance structure"): site-year / event levels a part cannot
+# separate are left out (R2); sigma ~ 1 where few sites have positives
+# (R3). All read from the job table's structure columns.
 #
 # Jobs (species, variant, tiers) come from JOBS_FILE
 # (01_contrast_jobs.csv, written by size_bd_contrast/01_contrast_tiers.Rmd).
@@ -96,7 +96,7 @@ add_contrast_groups = function(df) {
 # README.md ("Stage 1 model", "Model structure rules").
 #
 # the builders take one job: a row of 01_contrast_jobs.csv (or a list) with
-#   tier_hu, tier_mu        "A" / "B" / "C" / "fixed" (+ "none" for mu)
+#   tier_hu, tier_mu        "A" / "B" / "C" / "D" (+ "none" for mu; "fixed" = old name for D)
 #   hu_has_pop_year, hu_has_event, mu_has_pop_year, mu_has_event
 #                           whether that part has the site-year / event level (R2)
 #   sigma_by_population     sigma ~ (1 | population) if TRUE, sigma ~ 1 if FALSE (R3)
@@ -121,13 +121,14 @@ contrast_levels = function(has_pop_year = TRUE, has_event = TRUE) {
 
 # levels whose contrast (stage_c) varies, by tier, among the levels present:
 #   A: population + site-year + event      B: population + site-year
-#   C: population                          fixed / none: no contrast sd
+#   C: population                          D / none: no contrast sd
 contrast_slope_groups = function(tier, has_pop_year = TRUE, has_event = TRUE) {
   by_tier = switch(tier,
                    A = c("population", "pop_year", "pop_year_event"),
                    B = c("population", "pop_year"),
                    C = "population",
-                   fixed = character(0),
+                   D = character(0),
+                   fixed = character(0),   # round 1-2 name for D
                    none = character(0),
                    stop("unknown tier: ", tier))
   intersect(by_tier, contrast_levels(has_pop_year, has_event))
