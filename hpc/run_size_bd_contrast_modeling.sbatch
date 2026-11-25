@@ -11,6 +11,8 @@
 # update the array indices in the groups below.
 #
 # To submit all four groups at once: bash hpc/submit_size_bd_contrast.sh
+# Round 2 (refits after model structure rules R1-R3, 2026-11-25):
+#   bash hpc/submit_size_bd_contrast_round2.sh
 #
 # Resource groups (sbatch options on the command line override the #SBATCH
 # defaults below, which are the small group). Estimates from the local timing
@@ -24,20 +26,20 @@
 # to 0.99 in the R script (~1.5-2x slower than 0.95; the estimates below
 # include that); r. sierrae runs at 0.95.
 #
-#   small (n < 1k, est <= ~0.5 h at 0.99): 23 jobs, 4 h / 8G (the defaults)
+#   small (n < 1k, est <= ~0.5 h at 0.99): 23 jobs, 2 h / 8G (the defaults)
 #     sbatch hpc/run_size_bd_contrast_modeling.sbatch
 #   intermediate (n 1-3.4k, est ~0.5-2 h at 0.99): a. canorus main (2) and
 #     sens_tierA (3), p. crucifer (16), r. cascadae (19), r. catesbeiana (20),
 #     r. clamitans (21)
-#     sbatch --array=2,3,16,19-21 --mem=16G -t 08:00:00 hpc/run_size_bd_contrast_modeling.sbatch
+#     sbatch --array=2,3,16,19-21 --mem=16G -t 04:00:00 hpc/run_size_bd_contrast_modeling.sbatch
 #   large (n 5.3-6.8k, est ~3-6.5 h at 0.99): n. viridescens (15), r. muscosa (23)
-#     sbatch --array=15,23 --mem=24G -t 16:00:00 hpc/run_size_bd_contrast_modeling.sbatch
+#     sbatch --array=15,23 --mem=24G -t 08:00:00 hpc/run_size_bd_contrast_modeling.sbatch
 #   sierrae (n 26.6k, A x A, est ~11-29 h at 0.95): r. sierrae (25)
-#     sbatch --array=25 --mem=48G -t 2-00:00:00 --export=ALL,ADAPT_DELTA=0.95 hpc/run_size_bd_contrast_modeling.sbatch
+#     sbatch --array=25 --mem=48G -t 1-00:00:00 --export=ALL,ADAPT_DELTA=0.95 hpc/run_size_bd_contrast_modeling.sbatch
 #
 # Divergences: check the convergence table in 02_contrast_modeling.qmd.
 #   - r. sierrae diverging at 0.95: resubmit at 0.99 with more time, e.g.
-#       sbatch --array=25 --mem=48G -t 3-00:00:00 --export=ALL,ADAPT_DELTA=0.99 hpc/run_size_bd_contrast_modeling.sbatch
+#       sbatch --array=25 --mem=48G -t 1-12:00:00 --export=ALL,ADAPT_DELTA=0.99 hpc/run_size_bd_contrast_modeling.sbatch
 #   - a job still diverging at 0.99 points to the model (e.g. a contrast sd
 #     with too few co-sampled levels to inform it), not the sampler: look at
 #     the model (tier) before raising adapt_delta further.
@@ -61,7 +63,7 @@
 #SBATCH --array=0,1,4-14,17,18,22,24,26-31   # small group; see above
 #SBATCH -c 4                    # multiple of N_CORES (4); -c 8 gives 2 threads per chain
 #SBATCH --mem=8G                # small group; see above
-#SBATCH -t 04:00:00             # small group (est <= ~0.5 h); see above
+#SBATCH -t 02:00:00             # small group (est <= ~0.5 h); see above
 #SBATCH -J size_bd_contrast
 #SBATCH -o logs/%x_%A_%a.out
 #SBATCH -e logs/%x_%A_%a.err

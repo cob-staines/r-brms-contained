@@ -261,6 +261,12 @@ sbatch hpc/pull_image.sbatch                 # once, if r-brms.sif is missing
 bash hpc/submit_size_bd_contrast.sh
 tail -f logs/size_bd_contrast_<jobid>_<index>.out
 ```
+Round 2 (after the model structure rules R1-R3 in `size_bd_contrast/README.md`)
+refits only the changed jobs plus longer runs for three large species; copy the
+new jobs file up first (the script refuses a round 1 file):
+```bash
+bash hpc/submit_size_bd_contrast_round2.sh
+```
 Fits land in `models/size_bd_contrast/` as
 `size_bd_contrast_model_zln_c1_<species>_<variant>.rds` (with loo) plus a
 `_no_loo.rds` copy saved before loo runs. Outside Slurm, set
