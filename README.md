@@ -246,7 +246,7 @@ species, or leave it unset to fit all sequentially.
 `size_bd_contrast/02_contrast_modeling.qmd` (size_bd_load_analysis repo; model
 description in `size_bd_contrast/README.md`). It fits one hurdle-lognormal
 model per job (species x variant), with the subadult - adult contrast varying
-by population, site-year and 14-day event as each species' tiers allow.
+by population, site-year and survey event as each species' tiers allow.
 Jobs and tiers come from `01_contrast_jobs.csv`, written by
 `size_bd_contrast/01_contrast_tiers.Rmd`. Push it (and the m11g data file, if
 not already there) up:

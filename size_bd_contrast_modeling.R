@@ -6,7 +6,7 @@
 #
 # Each job is a hurdle-lognormal model of one species with no weather or
 # climate terms. stage_c (-0.5 adult, +0.5 subadult) is the subadult -
-# adult contrast; intercepts vary by population, site-year and 14-day
+# adult contrast; intercepts vary by population, site-year and survey
 # event, and the contrast varies at the levels the data support (tier):
 #   A: population + site-year + event   B: population + site-year
 #   C: population                       D: none (mean contrast only)
@@ -44,7 +44,10 @@ cat("\nRunning BRMS stage contrast models (size_bd_contrast, stage 1):\n\n")
 # n_cores below is chains run in parallel; total CPUs actually used is
 # n_cores * n_threads, so request that many in --cpus-per-task/-c in Slurm.
 n_chains <- as.integer(Sys.getenv("N_CHAINS", "4"))
-n_iter <- as.integer(Sys.getenv("N_ITER", "4000"))
+# 2000 warmup + 4000 sampling per chain = 16000 draws, for every job (round 3). round 2 ran
+# most jobs at N_ITER 4000 and only the slow-mixing large species (r. clamitans, r. muscosa,
+# r. sierrae) at 6000; one setting for all keeps the fits comparable in Monte Carlo precision.
+n_iter <- as.integer(Sys.getenv("N_ITER", "6000"))
 n_warmup <- as.integer(Sys.getenv("N_WARMUP", "2000"))
 n_cores <- as.integer(Sys.getenv("N_CORES", "4"))
 n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
@@ -52,7 +55,10 @@ n_threads <- as.integer(Sys.getenv("N_THREADS_PER_CHAIN", "1"))
 data_file <- Sys.getenv("DATA_FILE", "data/bd_model_env_unified_2026-11-12.RData")
 jobs_file <- Sys.getenv("JOBS_FILE", "data/01_contrast_jobs.csv")
 out_dir <- Sys.getenv("OUT_DIR", "models/size_bd_contrast")
-run_loo <- as.logical(Sys.getenv("RUN_LOO", "TRUE"))
+# loo is off by default: nothing in the contrast analysis uses it (02_contrast_modeling.qmd only
+# tabulated Pareto k, and acted on none), and for r. sierrae its pointwise log-likelihood matrix
+# (draws x swabs) is a large part of peak memory. set RUN_LOO=TRUE to add it.
+run_loo <- as.logical(Sys.getenv("RUN_LOO", "FALSE"))
 
 # sampler target acceptance rate. a higher target makes the sampler take smaller steps, which
 # follow tight posterior curvature (many small groups: events, site-years; contrast sds near 0)
@@ -68,20 +74,62 @@ adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
 # ============================================================
 response_col = "bd_load_co100_density"
 
-event_days = 14            # event = population x year x 14-day bin of day of year
+# event = a run of survey dates (of the species) at one site with no gap > event_max_gap days;
+# runs longer than event_max_span days are split at their longest gap until each piece fits
+event_max_gap = 5
+event_max_span = 14
 
 # stage_c: -0.5 adult, +0.5 subadult. the intercept is then the midpoint of the two stages and
 # the stage_c coefficient the full subadult - adult contrast; a group's stage_c sd is how much
 # the contrast varies at that level.
 # pop_year / pop_year_event: explicit ids (rather than population:year:... in the formula) so
-# parameter names stay readable. 14-day bins are cut at the new year.
+# parameter names stay readable.
+#
+# events follow the survey design rather than the calendar: consecutive-day visits stay together,
+# weekly revisits (gaps of 7 days) are separate events, and an intensive resurvey period longer
+# than 2 weeks is split where the surveys paused longest. built per species x population from
+# the species' own swab dates (each model sees one species). the year is part of the id, so an
+# event stays inside its site-year (none crossed the new year in the 2026-11 data).
+
+# split one run of sorted dates (numeric) at its longest gap, recursively, until every piece
+# spans <= max_span days. returns piece numbers 1, 2, ...
+split_long_run = function(d, max_span) {
+  if (length(d) < 2 || max(d) - min(d) + 1 <= max_span) return(rep(1L, length(d)))
+  j = which.max(diff(d))
+  a = split_long_run(d[1:j], max_span)
+  b = split_long_run(d[(j + 1):length(d)], max_span)
+  c(a, b + max(a))
+}
+
+# event number of each date in a sorted vector of distinct dates (numeric) at one site: a new run
+# starts after a gap > max_gap days; long runs are then split by split_long_run
+event_ids = function(d, max_gap = event_max_gap, max_span = event_max_span) {
+  run = cumsum(c(TRUE, diff(d) > max_gap))
+  out = integer(length(d))
+  k = 0L
+  for (r in unique(run)) {
+    i = which(run == r)
+    piece = split_long_run(d[i], max_span)
+    out[i] = piece + k
+    k = k + max(piece)
+  }
+  out
+}
+
 add_contrast_groups = function(df) {
+  events = df %>%
+    distinct(taxon_capture, population, date) %>%
+    arrange(taxon_capture, population, date) %>%
+    group_by(taxon_capture, population) %>%
+    mutate(event_k = event_ids(as.numeric(date))) %>%
+    ungroup()
+
   df %>%
+    left_join(events, by = c("taxon_capture", "population", "date")) %>%
     mutate(life_stage_simple = factor(life_stage_simple, levels = c("adult", "subadult")),
            stage_c = if_else(life_stage_simple == "subadult", 0.5, -0.5),
-           event_bin = (yday(date) - 1) %/% event_days,
            pop_year = paste(population, year, sep = "_"),
-           pop_year_event = paste(population, year, event_bin, sep = "_"))
+           pop_year_event = paste(population, year, event_k, sep = "_"))
 }
 # ============================================================
 # END copy of contrast_data_functions.R
@@ -105,7 +153,7 @@ add_contrast_groups = function(df) {
 
 # ---- data ------------------------------------------------------------------------------------
 # one species' swabs with stage_c (-0.5 adult / +0.5 subadult), pop_year and pop_year_event
-# (14-day events). droplevels so random-effect terms have no empty levels.
+# (survey-run events). droplevels so random-effect terms have no empty levels.
 prep_contrast_data = function(brms_data, species_name) {
   brms_data %>%
     filter(taxon_capture == species_name) %>%
@@ -311,12 +359,19 @@ model_contrast_job <- function(job_row) {
     format(Sys.time() - fit_start_time), "\n\n"
   ))
 
-  # save raw fit FIRST so it's never lost to a loo failure. the with-loo fit is saved under the
-  # name 02_contrast_modeling.qmd expects (size_bd_contrast_model_zln_c1_<species>_<variant>.rds).
+  # the fit is saved under the name 02_contrast_modeling.qmd and 03_contrast_analysis.Rmd expect
+  # (size_bd_contrast_model_zln_c1_<species>_<variant>.rds). with loo, the raw fit is saved
+  # FIRST as *_no_loo.rds so it is never lost to a loo failure, and the with-loo fit then takes
+  # the standard name.
   model_file <- file.path(out_dir, paste0("size_bd_contrast_model_zln_c1_", job_row$job, ".rds"))
-  raw_file <- sub("\\.rds$", "_no_loo.rds", model_file)
-  saveRDS(fit, file = raw_file)
-  cat(paste0("Model fit (no loo) saved to:\n\n\t", raw_file, "\n\n"))
+  if (!run_loo) {
+    saveRDS(fit, file = model_file)
+    cat(paste0("Model fit saved to:\n\n\t", model_file, "\n\n"))
+  } else {
+    raw_file <- sub("\\.rds$", "_no_loo.rds", model_file)
+    saveRDS(fit, file = raw_file)
+    cat(paste0("Model fit (no loo) saved to:\n\n\t", raw_file, "\n\n"))
+  }
 
   if (run_loo) {
     tryCatch({
