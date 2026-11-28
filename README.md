@@ -212,8 +212,9 @@ threading) alongside `N_CORES`; **total CPUs used is `N_CORES *
 N_THREADS_PER_CHAIN`**, so the Slurm `-c`/`--cpus-per-task` request must
 equal that product — the `hpc/*.sbatch` scripts export both env vars right
 next to the `-c` directive as a reminder to keep them in sync.
-### Per-species size ~ Bd GAMs
+### Per-species size ~ Bd GAMs (m3, to be retired)
 
+Superseded by the GAM in size_bd_contrast (below); kept until retired.
 `size_bd_gam_modeling.R` is the script version of
 `size_bd_gam/02_size_bd_GAM_modeling.qmd` (size_bd_load_analysis repo). It
 fits one hurdle-lognormal GAM per species, with a multivariate normal prior
@@ -272,3 +273,27 @@ Fits land in `models/size_bd_contrast/` as
 `_no_loo.rds` copy saved before loo runs. Outside Slurm, set
 `JOB=<species>_<variant>` (e.g. `rana_clamitans_main`) to fit one job, or
 leave it unset to fit all sequentially.
+
+### GAMs of Bd by body size (size_bd_contrast, GAM option 1)
+
+`size_bd_contrast_gam_modeling.R` is the script version of
+`size_bd_contrast/06_gam_modeling.qmd` (size_bd_load_analysis repo; model
+description in `size_bd_contrast/README.md`, "Downstream models" -> "GAM").
+One hurdle-lognormal model per species: a thin plate SVL smooth plus a
+metamorph baseline, with the nuisance intercepts of the species' stage 1
+model (no climate terms, no m11g prior). It carries a verbatim copy of
+`size_bd_contrast/gam_model_functions.R` (formula, priors, run settings):
+change both together and diff them. Push the two inputs written by `06` up:
+```bash
+rsync -avr size_bd_contrast/intermediates/06_gam_model_data.rds size_bd_contrast/intermediates/06_gam_species.csv <username>@ssh.grit.ucsb.edu:~/r-brms-contained/data/
+```
+Then submit the four resource groups (indices and time estimates in the
+header of `hpc/run_size_bd_contrast_gam_modeling.sbatch`):
+```bash
+bash hpc/submit_size_bd_contrast_gam.sh
+tail -f logs/size_bd_contrast_gam_<jobid>_<index>.out
+```
+Fits land in `models/size_bd_contrast_gam/` as `gam_m4_<species>.rds` (no loo);
+copy them into `size_bd_contrast/models/`, where `06` / `07` read them. Outside
+Slurm, set `SPECIES=<taxon_capture>` to fit one species, or leave it unset to
+fit all sequentially.
